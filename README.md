@@ -2,6 +2,9 @@
 
 Webページの画像を右クリックでJPG・PNG・WebPに変換して保存できるChrome拡張機能です。
 
+> [!NOTE]
+> Created by Claude Code
+
 ## 機能
 
 - 画像を右クリック → JPG / PNG / WebP を選択して保存
