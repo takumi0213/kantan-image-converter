@@ -277,7 +277,7 @@ async function contentScriptConvert(srcUrl, targetMime) {
     while (i + 8 <= data.length) {
       const chunkId = String.fromCharCode(data[i], data[i + 1], data[i + 2], data[i + 3]);
       const chunkSize =
-        data[i + 4] | (data[i + 5] << 8) | (data[i + 6] << 16) | (data[i + 7] << 24);
+        (data[i + 4] | (data[i + 5] << 8) | (data[i + 6] << 16) | (data[i + 7] << 24)) >>> 0;
 
       if (chunkId === "ANIM") {
         return true;
@@ -326,22 +326,27 @@ async function contentScriptConvert(srcUrl, targetMime) {
 
     // --- Canvas変換 ---
     const imageBitmap = await createImageBitmap(new Blob([arrayBuf], { type: blob.type }));
-    const canvas = new OffscreenCanvas(imageBitmap.width, imageBitmap.height);
-    const ctx = canvas.getContext("2d");
+    let convertedBlob;
+    try {
+      const canvas = new OffscreenCanvas(imageBitmap.width, imageBitmap.height);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Canvas 2D context unavailable");
 
-    // JPGは透過非対応のため白背景を描画
-    if (targetMime === "image/jpeg") {
-      ctx.fillStyle = "#FFFFFF";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // JPGは透過非対応のため白背景を描画
+      if (targetMime === "image/jpeg") {
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      ctx.drawImage(imageBitmap, 0, 0);
+
+      convertedBlob = await canvas.convertToBlob({
+        type: targetMime,
+        quality: QUALITY,
+      });
+    } finally {
+      imageBitmap.close();
     }
-
-    ctx.drawImage(imageBitmap, 0, 0);
-    imageBitmap.close();
-
-    const convertedBlob = await canvas.convertToBlob({
-      type: targetMime,
-      quality: QUALITY,
-    });
 
     // Blob → data URL
     const dataUrl = await new Promise((resolve, reject) => {

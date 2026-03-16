@@ -55,6 +55,10 @@ notifyEl.addEventListener("change", async () => {
  */
 function saveSetting(key, value) {
   chrome.storage.local.set({ [key]: value }, () => {
+    if (chrome.runtime.lastError) {
+      showStatus("設定の保存に失敗しました", true);
+      return;
+    }
     showStatus("設定を保存しました");
   });
 }
