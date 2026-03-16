@@ -1,0 +1,90 @@
+# AGENTS.md — かんたん画像変換
+
+## プロジェクト概要
+
+**かんたん画像変換** は、Webページの画像を右クリックメニューからJPG・PNG・WebPに変換して保存できるChrome拡張機能です。
+
+- **種別**: Chrome拡張機能（Manifest V3）
+- **言語**: JavaScript（バニラ、フレームワーク不使用）
+- **依存パッケージ**: なし（外部ライブラリ・npm 不使用）
+
+## リポジトリ構成
+
+```
+kantan-image-converter/
+├── manifest.json        # 拡張機能マニフェスト (Manifest V3)
+├── background.js        # Service Worker（メニュー・ダウンロード管理）
+├── options.html         # オプションページ UI
+├── options.js           # オプションページ ロジック
+├── icons/
+│   ├── icon16.png
+│   ├── icon48.png
+│   └── icon128.png
+├── tools/
+│   └── generate_icons.py
+├── CLAUDE.md
+├── AGENTS.md
+├── LICENSE
+└── README.md
+```
+
+## 処理フロー
+
+```
+コンテキストメニュー click
+  → Service Worker (background.js)
+      ├── activeTab + scripting.executeScript で content script を注入
+      └── content script
+            ├── 画像を fetch
+            ├── OffscreenCanvas で指定フォーマットに変換（convertToBlob, 品質92%）
+            └── 変換済み data URL を Service Worker に返却
+  → chrome.downloads.download() で保存
+```
+
+## 機能仕様
+
+### 対応フォーマット
+- 出力: JPG / PNG / WebP
+- 入力: 任意（ブラウザが読み込める画像形式）
+
+### 変換しないケース
+- アニメーションGIF / アニメーションWebP → そのまま保存
+- SVG → そのまま保存
+
+### ファイル名決定
+1. 画像URLのパスからファイル名を抽出
+2. 取得不可（data URI、blob URL等）→ `YYYYMMDD_HHMMSS` 形式
+3. パストラバーサル防止・特殊文字サニタイズ
+4. 拡張子を変換先フォーマットに置換
+
+### エラー時のフォールバック
+CORS制限・Canvas変換失敗等、あらゆるエラーケースで元画像URLをそのままダウンロードする（変換なし）。
+
+## セキュリティ仕様
+
+| 項目 | 内容 |
+|---|---|
+| URLスキーム検証 | `http:`, `https:`, `data:`, `blob:` のみ許可 |
+| ファイル名サニタイズ | パストラバーサル防止、null バイト・特殊文字除去 |
+| CSP | `script-src 'self'; object-src 'self'` |
+| 権限 | `host_permissions` 不使用、`notifications` はオプション |
+| 外部通信 | なし（すべてローカル完結） |
+| content script | isolated world で実行 |
+
+## コード変更時のガイドライン
+
+1. **セキュリティ要件を変更しないこと** — URLスキーム検証・ファイル名サニタイズ・CSPは必須。
+2. **外部依存を追加しないこと** — npm / CDN 等の外部ライブラリは使用しない。
+3. **フォールバック動作を維持すること** — 変換失敗時は必ず元画像URLをダウンロードする。
+4. **品質パラメータ(92%)を変更する場合** — ファイルサイズと品質のトレードオフを考慮し理由を明記。
+5. **新しい権限を追加する場合** — manifest.json の変更理由を明確にすること。
+
+## テスト方法
+
+自動テストフレームワークは未導入。手動テスト手順:
+
+1. `chrome://extensions` でデベロッパーモードをON
+2. 「パッケージ化されていない拡張機能を読み込む」でこのフォルダを選択
+3. Webページ上の画像を右クリックし、各フォーマット（JPG/PNG/WebP）で変換・保存を確認
+4. アニメーションGIF・SVGがそのまま保存されることを確認
+5. CORS制限のある画像でフォールバック動作を確認

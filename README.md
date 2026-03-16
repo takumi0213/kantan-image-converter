@@ -126,12 +126,9 @@ kantan-image-converter/
 
 ## 開発
 
-### アイコンの再生成
+### 開発用ツール
 
-```bash
-pip install Pillow
-python tools/generate_icons.py
-```
+`tools/` ディレクトリにアイコン生成スクリプト等の開発用ツールがあります。詳細は [tools/README.md](tools/README.md) を参照してください。
 
 ### デバッグ
 
