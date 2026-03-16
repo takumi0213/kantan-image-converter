@@ -1,0 +1,24 @@
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editor
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Build / Package
+*.zip
+*.crx
+*.pem
+
+# Python (icon generation)
+__pycache__/
+*.pyc
+.venv/
+
+# Node (future use)
+node_modules/
