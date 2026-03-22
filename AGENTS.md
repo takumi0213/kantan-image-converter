@@ -24,6 +24,9 @@ kantan-image-converter/
 │   └── icon128.png
 ├── tools/
 │   └── generate_icons.py
+├── docs/
+│   ├── demo.html
+│   └── debug.html
 ├── CLAUDE.md
 ├── AGENTS.md
 ├── LICENSE
@@ -88,10 +91,9 @@ CORS制限・Canvas変換失敗等、あらゆるエラーケースで元画像U
 
 ## テスト方法
 
-自動テストフレームワークは未導入。手動テスト手順:
+自動テストフレームワークは未導入。`docs/debug.html` にエッジケースのテスト用画像とテストマトリクスがある。手動テスト手順:
 
 1. `chrome://extensions` でデベロッパーモードをON
 2. 「パッケージ化されていない拡張機能を読み込む」でこのフォルダを選択
-3. Webページ上の画像を右クリックし、各フォーマット（JPG/PNG/WebP）で変換・保存を確認
-4. アニメーションGIF・SVGがそのまま保存されることを確認
-5. CORS制限のある画像でフォールバック動作を確認
+3. `docs/debug.html` を開き、各セクションの画像で動作を検証
+4. `docs/debug.html` 内のテストマトリクスに沿って全ケースを確認

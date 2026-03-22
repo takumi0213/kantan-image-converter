@@ -73,5 +73,6 @@ python tools/generate_icons.py
 デバッグ手順:
 1. `chrome://extensions` でデベロッパーモードをON
 2. 拡張機能を読み込み
-3. Service Worker の「inspect」からDevToolsを開く
-4. content script のログはページのDevTools Consoleに表示
+3. `docs/debug.html` を開いてエッジケースのテストを実施
+4. Service Worker の「inspect」からDevToolsを開く
+5. content script のログはページのDevTools Consoleに表示

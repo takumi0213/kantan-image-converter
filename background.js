@@ -21,6 +21,8 @@ const MENU_IDS = {
   JPG: "kantan-image-jpg",
   PNG: "kantan-image-png",
   WEBP: "kantan-image-webp",
+  SEPARATOR: "kantan-image-sep",
+  GUIDE: "kantan-image-guide",
 };
 
 /** MIME タイプマッピング */
@@ -81,6 +83,20 @@ chrome.runtime.onInstalled.addListener(() => {
     title: "WebP として保存",
     contexts: ["image"],
   });
+
+  chrome.contextMenus.create({
+    id: MENU_IDS.SEPARATOR,
+    parentId: MENU_IDS.PARENT,
+    type: "separator",
+    contexts: ["image"],
+  });
+
+  chrome.contextMenus.create({
+    id: MENU_IDS.GUIDE,
+    parentId: MENU_IDS.PARENT,
+    title: "使い方ガイド",
+    contexts: ["image"],
+  });
 });
 
 // ========================================================
@@ -88,6 +104,12 @@ chrome.runtime.onInstalled.addListener(() => {
 // ========================================================
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
+  // 使い方ガイド
+  if (info.menuItemId === MENU_IDS.GUIDE) {
+    chrome.tabs.create({ url: chrome.runtime.getURL("docs/demo.html") });
+    return;
+  }
+
   const formatKey = menuIdToFormat(info.menuItemId);
   if (!formatKey || !tab?.id) return;
 
