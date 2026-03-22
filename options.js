@@ -79,9 +79,11 @@ async function requestNotificationPermission() {
 /**
  * ステータスメッセージを表示する。
  * @param {string} message
+ * @param {boolean} [isError=false] - エラー表示の場合 true
  */
-function showStatus(message) {
+function showStatus(message, isError = false) {
   statusEl.textContent = message;
+  statusEl.classList.toggle("error", isError);
   statusEl.classList.add("show");
 
   if (statusTimer) clearTimeout(statusTimer);
