@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: "Segoe UI", "Hiragino Sans", "Meiryo", sans-serif;
+      width: 260px;
+      padding: 16px;
+      color: #212529;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .header img {
+      width: 28px;
+      height: 28px;
+    }
+
+    .header h1 {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .description {
+      font-size: 12px;
+      color: #6c757d;
+      margin-bottom: 14px;
+      line-height: 1.6;
+    }
+
+    .links {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .links a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: #212529;
+      font-size: 13px;
+      font-weight: 500;
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      transition: background 0.15s;
+    }
+
+    .links a:hover {
+      background: #e9ecef;
+    }
+
+    .links a .icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    .icon-guide {
+      background: #e8f2fc;
+      color: #2979c2;
+    }
+
+    .icon-debug {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .version {
+      margin-top: 12px;
+      text-align: center;
+      font-size: 11px;
+      color: #adb5bd;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="../icons/icon48.png" alt="">
+    <h1>かんたん画像変換</h1>
+  </div>
+  <p class="description">画像を右クリック →「画像を変換して保存」からフォーマットを選んで保存できます。</p>
+  <div class="links">
+    <a id="guideLink" href="#">
+      <span class="icon icon-guide">📖</span>
+      使い方ガイド
+    </a>
+    <a id="debugLink" href="#">
+      <span class="icon icon-debug">🔧</span>
+      テスト・デバッグ
+    </a>
+  </div>
+  <div class="version" id="version"></div>
+  <script src="popup.js"></script>
+</body>
+</html>

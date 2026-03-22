@@ -25,8 +25,12 @@ kantan-image-converter/
 ├── tools/
 │   └── generate_icons.py
 ├── docs/
+│   ├── popup.html
+│   ├── popup.js
 │   ├── demo.html
-│   └── debug.html
+│   ├── demo.js
+│   ├── debug.html
+│   └── debug.js
 ├── CLAUDE.md
 ├── AGENTS.md
 ├── LICENSE
