@@ -1,0 +1,39 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create distribution ZIP
+        run: |
+          DIST_DIR="kantan-image-converter"
+          mkdir -p "$DIST_DIR/icons"
+
+          # 拡張機能として必要なファイルのみをコピー
+          cp manifest.json "$DIST_DIR/"
+          cp background.js "$DIST_DIR/"
+          cp icons/icon16.png "$DIST_DIR/icons/"
+          cp icons/icon48.png "$DIST_DIR/icons/"
+          cp icons/icon128.png "$DIST_DIR/icons/"
+          cp LICENSE "$DIST_DIR/"
+
+          # ZIP作成
+          zip -r "kantan-image-converter-${GITHUB_REF_NAME}.zip" "$DIST_DIR"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: kantan-image-converter-*.zip
+          generate_release_notes: true
