@@ -18,8 +18,6 @@ kantan-image-converter/
 │       └── claude-code-review.yml
 ├── manifest.json        # 拡張機能マニフェスト (Manifest V3)
 ├── background.js        # Service Worker（メニュー・ダウンロード管理）
-├── options.html         # オプションページ UI
-├── options.js           # オプションページ ロジック
 ├── icons/
 │   ├── icon16.png
 │   ├── icon48.png
@@ -67,11 +65,11 @@ CORS制限・Canvas変換失敗等、あらゆるエラーケースで元画像U
 ## セキュリティ仕様
 
 | 項目 | 内容 |
-|---|---|
+| --- | --- |
 | URLスキーム検証 | `http:`, `https:`, `data:`, `blob:` のみ許可 |
 | ファイル名サニタイズ | パストラバーサル防止、null バイト・特殊文字除去 |
 | CSP | `script-src 'self'; object-src 'self'` |
-| 権限 | `host_permissions` 不使用、`notifications` はオプション |
+| 権限 | `host_permissions` 不使用 |
 | 外部通信 | なし（すべてローカル完結） |
 | content script | isolated world で実行 |
 

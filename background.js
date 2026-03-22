@@ -127,7 +127,7 @@ async function handleImageSave(info, tab, formatKey) {
 
   // URLスキーム検証
   if (!isAllowedScheme(srcUrl)) {
-    await reportError("このURLスキームはサポートされていません。");
+    reportError("このURLスキームはサポートされていません。");
     return;
   }
 
@@ -165,7 +165,7 @@ async function handleImageSave(info, tab, formatKey) {
       await downloadOriginal(srcUrl, filename);
     } catch (dlErr) {
       console.error("[かんたん画像変換] Fallback download also failed:", dlErr);
-      await reportError("画像の保存に失敗しました。");
+      reportError("画像の保存に失敗しました。");
     }
   }
 }
@@ -194,15 +194,13 @@ async function contentScriptConvert(srcUrl, targetMime) {
    * @returns {boolean}
    */
   function isAnimatedGif(data) {
-    // GIF89a / GIF87a シグネチャ確認
     if (data.length < 6) return false;
     const sig = String.fromCharCode(data[0], data[1], data[2]);
     if (sig !== "GIF") return false;
 
     let frameCount = 0;
-    let i = 6; // シグネチャ + バージョン後から
+    let i = 6;
 
-    // Logical Screen Descriptor をスキップ
     if (i + 7 > data.length) return false;
     const packed = data[i + 4];
     const hasGct = (packed >> 7) & 1;
@@ -217,10 +215,8 @@ async function contentScriptConvert(srcUrl, targetMime) {
       i++;
 
       if (blockType === 0x2c) {
-        // Image Descriptor
         frameCount++;
         if (frameCount >= 2) return true;
-        // Image Descriptor は 9 バイト (introducer 除く)
         if (i + 9 > data.length) return false;
         const imgPacked = data[i + 8];
         const hasLct = (imgPacked >> 7) & 1;
@@ -229,10 +225,8 @@ async function contentScriptConvert(srcUrl, targetMime) {
         if (hasLct) {
           i += 3 * (1 << (lctSize + 1));
         }
-        // LZW Minimum Code Size
         if (i >= data.length) return false;
-        i++; // skip
-        // Sub-blocks
+        i++;
         while (i < data.length) {
           const subBlockSize = data[i];
           i++;
@@ -240,9 +234,8 @@ async function contentScriptConvert(srcUrl, targetMime) {
           i += subBlockSize;
         }
       } else if (blockType === 0x21) {
-        // Extension block
         if (i >= data.length) return false;
-        i++; // Extension label
+        i++;
         while (i < data.length) {
           const subBlockSize = data[i];
           i++;
@@ -250,7 +243,6 @@ async function contentScriptConvert(srcUrl, targetMime) {
           i += subBlockSize;
         }
       } else if (blockType === 0x3b) {
-        // Trailer
         break;
       } else {
         break;
@@ -267,12 +259,10 @@ async function contentScriptConvert(srcUrl, targetMime) {
    */
   function isAnimatedWebp(data) {
     if (data.length < 12) return false;
-    // RIFF....WEBP シグネチャ確認
     const riff = String.fromCharCode(data[0], data[1], data[2], data[3]);
     const webp = String.fromCharCode(data[8], data[9], data[10], data[11]);
     if (riff !== "RIFF" || webp !== "WEBP") return false;
 
-    // ANIMチャンクを探す
     let i = 12;
     while (i + 8 <= data.length) {
       const chunkId = String.fromCharCode(data[i], data[i + 1], data[i + 2], data[i + 3]);
@@ -284,7 +274,6 @@ async function contentScriptConvert(srcUrl, targetMime) {
       }
 
       i += 8 + chunkSize;
-      // RIFFチャンクは偶数バイト境界
       if (chunkSize % 2 !== 0) i++;
     }
 
@@ -294,7 +283,6 @@ async function contentScriptConvert(srcUrl, targetMime) {
   // --- メイン処理 ---
 
   try {
-    // --- 画像データの取得 ---
     let blob;
 
     if (srcUrl.startsWith("data:")) {
@@ -367,62 +355,49 @@ async function contentScriptConvert(srcUrl, targetMime) {
 // ========================================================
 
 /**
- * data URL をダウンロードする。
+ * data URL をダウンロードする（名前を付けて保存ダイアログを表示）。
  * @param {string} dataUrl
  * @param {string} filename
  */
 async function downloadFile(dataUrl, filename) {
-  const options = await getDownloadOptions(filename);
-  options.url = dataUrl;
-
   return new Promise((resolve, reject) => {
-    chrome.downloads.download(options, (downloadId) => {
-      if (chrome.runtime.lastError) {
-        reject(new Error(chrome.runtime.lastError.message));
-      } else {
-        resolve(downloadId);
+    chrome.downloads.download(
+      { url: dataUrl, filename: filename, saveAs: true },
+      (downloadId) => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+        } else {
+          resolve(downloadId);
+        }
       }
-    });
+    );
   });
 }
 
 /**
- * 元画像URLをそのままダウンロードする。
+ * 元画像URLをそのままダウンロードする（名前を付けて保存ダイアログを表示）。
  * @param {string} srcUrl
  * @param {string} filename
  */
 async function downloadOriginal(srcUrl, filename) {
-  // data: や blob: は chrome.downloads.download で直接使えないケースがある
+  // blob: は chrome.downloads.download で直接使えない
   if (srcUrl.startsWith("blob:")) {
-    await reportError("この画像は直接ダウンロードできません。");
+    reportError("この画像は直接ダウンロードできません。");
     return;
   }
 
-  const options = await getDownloadOptions(filename);
-  options.url = srcUrl;
-
   return new Promise((resolve, reject) => {
-    chrome.downloads.download(options, (downloadId) => {
-      if (chrome.runtime.lastError) {
-        reject(new Error(chrome.runtime.lastError.message));
-      } else {
-        resolve(downloadId);
+    chrome.downloads.download(
+      { url: srcUrl, filename: filename, saveAs: true },
+      (downloadId) => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+        } else {
+          resolve(downloadId);
+        }
       }
-    });
+    );
   });
-}
-
-/**
- * ダウンロードオプションを構築（saveAs 設定を反映）。
- * @param {string} filename
- * @returns {Promise<chrome.downloads.DownloadOptions>}
- */
-async function getDownloadOptions(filename) {
-  const settings = await getSettings();
-  return {
-    filename: filename,
-    saveAs: settings.saveAs || false,
-  };
 }
 
 // ========================================================
@@ -462,7 +437,6 @@ function buildFilename(srcUrl, ext) {
  * @returns {string}
  */
 function extractBaseName(srcUrl) {
-  // data: や blob: からはファイル名を取得できない
   if (srcUrl.startsWith("data:") || srcUrl.startsWith("blob:")) {
     return "";
   }
@@ -474,7 +448,6 @@ function extractBaseName(srcUrl) {
 
     if (!lastSegment) return "";
 
-    // URLデコード
     return decodeURIComponent(lastSegment);
   } catch {
     return "";
@@ -503,17 +476,11 @@ function removeExtension(filename) {
 function sanitizeFilename(filename) {
   return (
     filename
-      // null バイト除去
       .replace(/\0/g, "")
-      // パス区切り文字除去
       .replace(/[/\\]/g, "")
-      // Windowsで使えない文字を除去
       .replace(/[<>:"|?*]/g, "")
-      // 先頭・末尾のドットとスペースを除去
       .replace(/^[\s.]+|[\s.]+$/g, "")
-      // 連続スペースを単一アンダースコアに
       .replace(/\s+/g, "_")
-      // 長すぎるファイル名を制限 (拡張子分を考慮して200文字)
       .substring(0, 200)
   );
 }
@@ -561,7 +528,7 @@ function getOriginalExt(srcUrl) {
   } catch {
     // ignore
   }
-  return ".png"; // フォールバック
+  return ".png";
 }
 
 // ========================================================
@@ -583,58 +550,20 @@ function isAllowedScheme(srcUrl) {
 }
 
 // ========================================================
-// 設定管理
-// ========================================================
-
-/**
- * storage から設定を取得する。
- * @returns {Promise<{saveAs: boolean, notifyOnComplete: boolean}>}
- */
-async function getSettings() {
-  return new Promise((resolve) => {
-    chrome.storage.local.get(
-      { saveAs: false, notifyOnComplete: false },
-      (items) => resolve(items)
-    );
-  });
-}
-
-// ========================================================
 // エラー報告
 // ========================================================
 
 /**
- * エラーを報告する（バッジ赤化 + 通知(有効時)）。
+ * エラーを報告する（バッジを一時的に赤化）。
  * @param {string} message
  */
-async function reportError(message) {
+function reportError(message) {
   console.error("[かんたん画像変換]", message);
 
-  // バッジを赤くする
   chrome.action.setBadgeBackgroundColor({ color: "#E24B4A" });
   chrome.action.setBadgeText({ text: "!" });
 
   setTimeout(() => {
     chrome.action.setBadgeText({ text: "" });
   }, ERROR_BADGE_DURATION);
-
-  // 通知（設定で有効かつ権限がある場合）
-  const settings = await getSettings();
-  if (settings.notifyOnComplete) {
-    try {
-      const hasPermission = await chrome.permissions.contains({
-        permissions: ["notifications"],
-      });
-      if (hasPermission) {
-        chrome.notifications.create({
-          type: "basic",
-          iconUrl: "icons/icon128.png",
-          title: "かんたん画像変換",
-          message: message,
-        });
-      }
-    } catch {
-      // notifications permission not available
-    }
-  }
 }
