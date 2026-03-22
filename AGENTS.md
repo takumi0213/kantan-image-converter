@@ -12,6 +12,10 @@
 
 ```
 kantan-image-converter/
+├── .github/
+│   └── workflows/
+│       ├── claude.yml
+│       └── claude-code-review.yml
 ├── manifest.json        # 拡張機能マニフェスト (Manifest V3)
 ├── background.js        # Service Worker（メニュー・ダウンロード管理）
 ├── options.html         # オプションページ UI
