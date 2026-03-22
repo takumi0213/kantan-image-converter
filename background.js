@@ -21,8 +21,6 @@ const MENU_IDS = {
   JPG: "kantan-image-jpg",
   PNG: "kantan-image-png",
   WEBP: "kantan-image-webp",
-  SEPARATOR: "kantan-image-sep",
-  GUIDE: "kantan-image-guide",
 };
 
 /** MIME タイプマッピング */
@@ -83,20 +81,6 @@ chrome.runtime.onInstalled.addListener(() => {
     title: "WebP として保存",
     contexts: ["image"],
   });
-
-  chrome.contextMenus.create({
-    id: MENU_IDS.SEPARATOR,
-    parentId: MENU_IDS.PARENT,
-    type: "separator",
-    contexts: ["image"],
-  });
-
-  chrome.contextMenus.create({
-    id: MENU_IDS.GUIDE,
-    parentId: MENU_IDS.PARENT,
-    title: "使い方ガイド",
-    contexts: ["image"],
-  });
 });
 
 // ========================================================
@@ -104,12 +88,6 @@ chrome.runtime.onInstalled.addListener(() => {
 // ========================================================
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  // 使い方ガイド
-  if (info.menuItemId === MENU_IDS.GUIDE) {
-    chrome.tabs.create({ url: chrome.runtime.getURL("docs/demo.html") });
-    return;
-  }
-
   const formatKey = menuIdToFormat(info.menuItemId);
   if (!formatKey || !tab?.id) return;
 
@@ -181,8 +159,14 @@ async function handleImageSave(info, tab, formatKey) {
       await downloadOriginal(srcUrl, filename);
     }
   } catch (err) {
-    console.error("[かんたん画像変換] executeScript failed:", err);
-    // content script 注入失敗 → フォールバック
+    // chrome-extension://, chrome://, edge:// 等のページではスクリプト注入不可
+    const isRestrictedPage = err.message && err.message.includes("Cannot access contents");
+    if (isRestrictedPage) {
+      console.info("[かんたん画像変換] Restricted page - converting not available, downloading original.");
+    } else {
+      console.error("[かんたん画像変換] executeScript failed:", err);
+    }
+    // フォールバック: 元画像をそのままダウンロード
     try {
       await downloadOriginal(srcUrl, filename);
     } catch (dlErr) {
@@ -208,7 +192,6 @@ async function contentScriptConvert(srcUrl, targetMime) {
   const QUALITY = 0.92;
 
   // --- アニメーション判定ヘルパー ---
-  // function 宣言はホイスティングされるが、可読性のため先頭に配置する。
 
   /**
    * GIFがアニメーションかどうかをImage Descriptorブロック数で判定。
@@ -302,61 +285,85 @@ async function contentScriptConvert(srcUrl, targetMime) {
     return false;
   }
 
+  /**
+   * 画像を読み込んで HTMLImageElement を返す。
+   * ページ内の <img> 要素を探し、見つからなければ新規作成して読み込む。
+   * @param {string} url
+   * @returns {Promise<HTMLImageElement>}
+   */
+  function loadImage(url) {
+    return new Promise((resolve, reject) => {
+      // ページ内の <img> 要素からsrcが一致するものを探す
+      const existingImg = document.querySelector(`img[src="${CSS.escape(url)}"]`);
+      if (existingImg && existingImg.complete && existingImg.naturalWidth > 0) {
+        resolve(existingImg);
+        return;
+      }
+
+      // 見つからない場合は新規作成（data URI, blob URL, または検索ヒットなし）
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("Image load failed"));
+      img.src = url;
+    });
+  }
+
   // --- メイン処理 ---
 
   try {
-    let blob;
-
-    if (srcUrl.startsWith("data:")) {
-      const resp = await fetch(srcUrl);
-      blob = await resp.blob();
-    } else if (srcUrl.startsWith("blob:")) {
-      const resp = await fetch(srcUrl);
-      blob = await resp.blob();
-    } else {
-      const resp = await fetch(srcUrl, { mode: "cors" });
-      if (!resp.ok) {
-        return { error: `Fetch failed: ${resp.status}` };
-      }
-      blob = await resp.blob();
-    }
-
     // --- SVG判定: 元のまま保存 ---
-    if (blob.type === "image/svg+xml" || srcUrl.toLowerCase().endsWith(".svg")) {
+    if (srcUrl.toLowerCase().endsWith(".svg") ||
+        srcUrl.startsWith("data:image/svg+xml")) {
       return { skipConversion: true };
     }
 
-    // --- アニメーション判定 ---
-    const arrayBuf = await blob.arrayBuffer();
-    const bytes = new Uint8Array(arrayBuf);
+    // --- アニメーション判定（バイナリチェックが必要なので fetch を試みる）---
+    let isAnimated = false;
+    try {
+      const resp = await fetch(srcUrl);
+      if (resp.ok) {
+        const arrayBuf = await resp.arrayBuffer();
+        const bytes = new Uint8Array(arrayBuf);
 
-    if (isAnimatedGif(bytes) || isAnimatedWebp(bytes)) {
+        // SVG追加チェック（Content-Typeベース）
+        const contentType = resp.headers.get("content-type") || "";
+        if (contentType.includes("svg")) {
+          return { skipConversion: true };
+        }
+
+        if (isAnimatedGif(bytes) || isAnimatedWebp(bytes)) {
+          isAnimated = true;
+        }
+      }
+    } catch {
+      // fetch失敗（CORS等）→ アニメーション判定をスキップして変換を試みる
+    }
+
+    if (isAnimated) {
       return { skipConversion: true };
     }
 
     // --- Canvas変換 ---
-    const imageBitmap = await createImageBitmap(new Blob([arrayBuf], { type: blob.type }));
-    let convertedBlob;
-    try {
-      const canvas = new OffscreenCanvas(imageBitmap.width, imageBitmap.height);
-      const ctx = canvas.getContext("2d");
-      if (!ctx) throw new Error("Canvas 2D context unavailable");
+    // ページ内の <img> 要素を利用して描画（CORS制限を回避）
+    const img = await loadImage(srcUrl);
 
-      // JPGは透過非対応のため白背景を描画
-      if (targetMime === "image/jpeg") {
-        ctx.fillStyle = "#FFFFFF";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-      }
+    const canvas = new OffscreenCanvas(img.naturalWidth, img.naturalHeight);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Canvas 2D context unavailable");
 
-      ctx.drawImage(imageBitmap, 0, 0);
-
-      convertedBlob = await canvas.convertToBlob({
-        type: targetMime,
-        quality: QUALITY,
-      });
-    } finally {
-      imageBitmap.close();
+    // JPGは透過非対応のため白背景を描画
+    if (targetMime === "image/jpeg") {
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
+
+    ctx.drawImage(img, 0, 0);
+
+    const convertedBlob = await canvas.convertToBlob({
+      type: targetMime,
+      quality: QUALITY,
+    });
 
     // Blob → data URL
     const dataUrl = await new Promise((resolve, reject) => {
