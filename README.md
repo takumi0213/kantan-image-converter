@@ -107,13 +107,13 @@ kantan-image-converter/
 
 ## コントリビューション
 
-バグ報告・機能提案・PRを歓迎します。詳細は <CONTRIBUTING.md> を参照してください。
+バグ報告・機能提案・PRを歓迎します。詳細は [CONTRIBUTING.md](CONTRIBUTING.md) を参照してください。
 
 ## 開発
 
 ### 開発用ツール
 
-`tools/` ディレクトリにアイコン生成スクリプト等の開発用ツールがあります。詳細は <tools/README.md> を参照してください。
+`tools/` ディレクトリにアイコン生成スクリプト等の開発用ツールがあります。詳細は [tools/README.md](tools/README.md) を参照してください。
 
 ### デバッグ
 
