@@ -25,9 +25,11 @@ TODO: スクリーンショットを追加
 ### 開発者モードで読み込む場合
 
 1. このリポジトリをクローンまたはダウンロード
+
    ```bash
    git clone https://github.com/takumi0213/kantan-image-converter.git
    ```
+
 2. Chromeで `chrome://extensions` を開く
 3. 右上の「デベロッパーモード」をONにする
 4. 「パッケージ化されていない拡張機能を読み込む」をクリック
@@ -68,7 +70,7 @@ TODO: スクリーンショットを追加
 ### エラーハンドリング
 
 | ケース | 動作 |
-|---|---|
+| --- | --- |
 | CORS制限で画像取得失敗 | 元画像URLをそのままダウンロード（変換なし） |
 | content script 注入失敗 | 元画像URLをそのままダウンロード（変換なし） |
 | Canvas変換失敗（巨大画像等） | 元画像URLをそのままダウンロード（変換なし） |
@@ -89,7 +91,7 @@ TODO: スクリーンショットを追加
 ### 必要な権限
 
 | 権限 | 用途 |
-|---|---|
+| --- | --- |
 | `contextMenus` | 右クリックメニューの登録 |
 | `downloads` | 変換後の画像をダウンロード |
 | `activeTab` | アクティブタブの画像にアクセス |
@@ -107,6 +109,8 @@ kantan-image-converter/
 │   └── icon128.png      # Chrome Web Store用
 ├── tools/
 │   └── generate_icons.py  # アイコン生成スクリプト（開発用）
+├── CLAUDE.md            # Claude Code 用プロジェクトガイド
+├── AGENTS.md            # AI エージェント向け仕様ドキュメント
 ├── LICENSE              # MIT License
 └── README.md
 ```
