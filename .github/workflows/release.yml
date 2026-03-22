@@ -35,7 +35,7 @@ jobs:
           zip -r "kantan-image-converter-${GITHUB_REF_NAME}.zip" "$DIST_DIR"
 
       - name: Generate attestation
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: kantan-image-converter-*.zip
 
