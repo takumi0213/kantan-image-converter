@@ -55,31 +55,34 @@ function enqueue(task) {
 // ========================================================
 
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create({
-    id: MENU_IDS.PARENT,
-    title: "画像を変換して保存",
-    contexts: ["image"],
-  });
+  // リロード時に古いメニューが残らないよう全削除してから再作成
+  chrome.contextMenus.removeAll(() => {
+    chrome.contextMenus.create({
+      id: MENU_IDS.PARENT,
+      title: "画像を変換して保存",
+      contexts: ["image"],
+    });
 
-  chrome.contextMenus.create({
-    id: MENU_IDS.PNG,
-    parentId: MENU_IDS.PARENT,
-    title: "PNG として保存",
-    contexts: ["image"],
-  });
+    chrome.contextMenus.create({
+      id: MENU_IDS.PNG,
+      parentId: MENU_IDS.PARENT,
+      title: "PNG として保存",
+      contexts: ["image"],
+    });
 
-  chrome.contextMenus.create({
-    id: MENU_IDS.JPG,
-    parentId: MENU_IDS.PARENT,
-    title: "JPG として保存",
-    contexts: ["image"],
-  });
+    chrome.contextMenus.create({
+      id: MENU_IDS.JPG,
+      parentId: MENU_IDS.PARENT,
+      title: "JPG として保存",
+      contexts: ["image"],
+    });
 
-  chrome.contextMenus.create({
-    id: MENU_IDS.WEBP,
-    parentId: MENU_IDS.PARENT,
-    title: "WebP として保存",
-    contexts: ["image"],
+    chrome.contextMenus.create({
+      id: MENU_IDS.WEBP,
+      parentId: MENU_IDS.PARENT,
+      title: "WebP として保存",
+      contexts: ["image"],
+    });
   });
 });
 
