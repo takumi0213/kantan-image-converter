@@ -366,6 +366,9 @@ async function downloadFile(dataUrl, filename) {
       (downloadId) => {
         if (chrome.runtime.lastError) {
           reject(new Error(chrome.runtime.lastError.message));
+        } else if (downloadId === undefined) {
+          console.info("[かんたん画像変換] Download cancelled by user.");
+          resolve(undefined);
         } else {
           resolve(downloadId);
         }
@@ -392,6 +395,9 @@ async function downloadOriginal(srcUrl, filename) {
       (downloadId) => {
         if (chrome.runtime.lastError) {
           reject(new Error(chrome.runtime.lastError.message));
+        } else if (downloadId === undefined) {
+          console.info("[かんたん画像変換] Download cancelled by user.");
+          resolve(undefined);
         } else {
           resolve(downloadId);
         }
@@ -448,7 +454,12 @@ function extractBaseName(srcUrl) {
 
     if (!lastSegment) return "";
 
-    return decodeURIComponent(lastSegment);
+    try {
+      return decodeURIComponent(lastSegment);
+    } catch {
+      // 不正な%エンコーディング（例: %ZZ）の場合、デコードせずそのまま使用
+      return lastSegment;
+    }
   } catch {
     return "";
   }
