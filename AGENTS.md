@@ -24,13 +24,6 @@ kantan-image-converter/
 │   └── icon128.png
 ├── tools/
 │   └── generate_icons.py
-├── docs/
-│   ├── popup.html
-│   ├── popup.js
-│   ├── demo.html
-│   ├── demo.js
-│   ├── debug.html
-│   └── debug.js
 ├── CLAUDE.md
 ├── AGENTS.md
 ├── LICENSE
@@ -44,7 +37,7 @@ kantan-image-converter/
   → Service Worker (background.js)
       ├── activeTab + scripting.executeScript で content script を注入
       └── content script
-            ├── 画像を fetch
+            ├── ページ内の <img> 要素から Canvas に描画
             ├── OffscreenCanvas で指定フォーマットに変換（convertToBlob, 品質92%）
             └── 変換済み data URL を Service Worker に返却
   → chrome.downloads.download() で保存
@@ -95,9 +88,10 @@ CORS制限・Canvas変換失敗等、あらゆるエラーケースで元画像U
 
 ## テスト方法
 
-自動テストフレームワークは未導入。`docs/debug.html` にエッジケースのテスト用画像とテストマトリクスがある。手動テスト手順:
+自動テストフレームワークは未導入。手動テスト手順:
 
 1. `chrome://extensions` でデベロッパーモードをON
 2. 「パッケージ化されていない拡張機能を読み込む」でこのフォルダを選択
-3. `docs/debug.html` を開き、各セクションの画像で動作を検証
-4. `docs/debug.html` 内のテストマトリクスに沿って全ケースを確認
+3. 通常のWebページ（https://...）で画像を右クリックし、各フォーマット（PNG/JPG/WebP）で変換・保存を確認
+4. アニメーションGIF・SVGがそのまま保存されることを確認
+5. `chrome://` 等の制限ページでは変換されず元画像がダウンロードされることを確認

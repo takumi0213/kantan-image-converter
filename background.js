@@ -134,6 +134,18 @@ async function handleImageSave(info, tab, formatKey) {
   const config = FORMAT_CONFIG[formatKey];
   const filename = buildFilename(srcUrl, config.ext);
 
+  // chrome-extension://, chrome://, edge://, about: 等ではスクリプト注入不可
+  // 変換せず元画像をそのままダウンロードする
+  const tabUrl = tab.url || "";
+  if (/^(chrome|edge|about|devtools)/i.test(tabUrl)) {
+    try {
+      await downloadOriginal(srcUrl, filename);
+    } catch (dlErr) {
+      reportError("画像の保存に失敗しました。");
+    }
+    return;
+  }
+
   try {
     // content script でキャンバス変換を試みる
     const results = await chrome.scripting.executeScript({
@@ -159,13 +171,7 @@ async function handleImageSave(info, tab, formatKey) {
       await downloadOriginal(srcUrl, filename);
     }
   } catch (err) {
-    // chrome-extension://, chrome://, edge:// 等のページではスクリプト注入不可
-    const isRestrictedPage = err.message && err.message.includes("Cannot access contents");
-    if (isRestrictedPage) {
-      console.info("[かんたん画像変換] Restricted page - converting not available, downloading original.");
-    } else {
-      console.error("[かんたん画像変換] executeScript failed:", err);
-    }
+    console.error("[かんたん画像変換] executeScript failed:", err);
     // フォールバック: 元画像をそのままダウンロード
     try {
       await downloadOriginal(srcUrl, filename);
