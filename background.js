@@ -62,16 +62,16 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 
   chrome.contextMenus.create({
-    id: MENU_IDS.JPG,
+    id: MENU_IDS.PNG,
     parentId: MENU_IDS.PARENT,
-    title: "JPG として保存",
+    title: "PNG として保存",
     contexts: ["image"],
   });
 
   chrome.contextMenus.create({
-    id: MENU_IDS.PNG,
+    id: MENU_IDS.JPG,
     parentId: MENU_IDS.PARENT,
-    title: "PNG として保存",
+    title: "JPG として保存",
     contexts: ["image"],
   });
 
