@@ -153,6 +153,7 @@ async function handleImageSave(info, tab, formatKey) {
     // content script でキャンバス変換を試みる
     const results = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
+      world: "ISOLATED",
       func: contentScriptConvert,
       args: [srcUrl, config.mime],
     });
