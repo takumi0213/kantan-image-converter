@@ -109,6 +109,8 @@ kantan-image-converter/
 
 バグ報告・機能提案・PRを歓迎します。詳細は [CONTRIBUTING.md](CONTRIBUTING.md) を参照してください。
 
+セキュリティ上の問題を発見した場合は、Issue ではなく [SECURITY.md](SECURITY.md) に記載の手順でご報告ください。
+
 ## 開発
 
 ### 開発用ツール
