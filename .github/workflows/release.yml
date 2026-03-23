@@ -21,7 +21,7 @@ jobs:
       - name: Create distribution ZIP
         run: |
           DIST_DIR="kantan-image-converter"
-          mkdir -p "$DIST_DIR/icons"
+          mkdir -p "$DIST_DIR/icons" "$DIST_DIR/docs"
 
           # 拡張機能として必要なファイルのみをコピー
           cp manifest.json "$DIST_DIR/"
@@ -29,7 +29,11 @@ jobs:
           cp icons/icon16.png "$DIST_DIR/icons/"
           cp icons/icon48.png "$DIST_DIR/icons/"
           cp icons/icon128.png "$DIST_DIR/icons/"
+          cp docs/popup.html "$DIST_DIR/docs/"
+          cp docs/popup.js "$DIST_DIR/docs/"
+          cp docs/demo.html "$DIST_DIR/docs/"
           cp LICENSE "$DIST_DIR/"
+          cp LICENSE-JP "$DIST_DIR/"
 
           # ZIP作成
           zip -r "kantan-image-converter-${GITHUB_REF_NAME}.zip" "$DIST_DIR"

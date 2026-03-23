@@ -150,7 +150,7 @@ async function handleImageSave(info, tab, formatKey) {
   }
 
   try {
-    // content script でキャンバス変換を試みる
+    // content script でキャンバス変換を試みる（デフォルトの ISOLATED world で実行）
     const results = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       func: contentScriptConvert,

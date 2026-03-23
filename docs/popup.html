@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>かんたん画像変換</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: "Segoe UI", "Hiragino Sans", "Meiryo", sans-serif;
+      width: 240px;
+      color: #212529;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .header img {
+      width: 24px;
+      height: 24px;
+    }
+
+    .header span {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .desc {
+      padding: 10px 16px;
+      font-size: 12px;
+      color: #6c757d;
+      line-height: 1.6;
+    }
+
+    .menu a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      text-decoration: none;
+      color: #212529;
+      font-size: 13px;
+      border-top: 1px solid #e9ecef;
+      transition: background 0.1s;
+    }
+
+    .menu a:hover {
+      background: #f1f3f5;
+    }
+
+    .version {
+      padding: 8px 16px;
+      font-size: 11px;
+      color: #adb5bd;
+      border-top: 1px solid #e9ecef;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="../icons/icon48.png" alt="">
+    <span>かんたん画像変換</span>
+  </div>
+  <div class="desc">画像を右クリック →「画像を変換して保存」から変換できます。</div>
+  <div class="menu">
+    <a href="demo.html" id="demoLink">デモ・使い方ガイド</a>
+  </div>
+  <div class="version" id="version"></div>
+  <script src="popup.js"></script>
+</body>
+</html>

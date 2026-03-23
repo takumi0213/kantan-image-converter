@@ -1,0 +1,32 @@
+name: 機能提案
+description: 改善案や新しいアイデアを提案する
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        提案ありがとうございます。
+
+        本拡張機能は「画像を変換して保存する」というシンプルさを重視しています。
+        提案内容が採用されない場合もありますが、ご了承ください。
+  - type: textarea
+    id: description
+    attributes:
+      label: 提案内容
+      description: どのような機能・改善を提案しますか？
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: 背景・動機
+      description: なぜこの機能が必要だと考えますか？どのような場面で役立ちますか？
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 代替案
+      description: 他に検討した方法があれば記載してください。
+    validations:
+      required: false
