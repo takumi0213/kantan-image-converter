@@ -13,11 +13,16 @@
 ```
 kantan-image-converter/
 ├── .github/
+│   ├── ISSUE_TEMPLATE/
+│   │   ├── bug_report.yml
+│   │   ├── config.yml
+│   │   └── feature_request.yml
+│   ├── workflows/
+│   │   ├── claude.yml
+│   │   ├── claude-code-review.yml
+│   │   └── release.yml
 │   ├── dependabot.yml
-│   └── workflows/
-│       ├── claude.yml
-│       ├── claude-code-review.yml
-│       └── release.yml
+│   └── pull_request_template.md
 ├── manifest.json        # 拡張機能マニフェスト (Manifest V3)
 ├── background.js        # Service Worker（メニュー・ダウンロード管理）
 ├── icons/
