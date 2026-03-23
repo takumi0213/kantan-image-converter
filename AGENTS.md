@@ -13,11 +13,16 @@
 ```
 kantan-image-converter/
 ├── .github/
+│   ├── ISSUE_TEMPLATE/
+│   │   ├── bug_report.yml
+│   │   ├── config.yml
+│   │   └── feature_request.yml
+│   ├── workflows/
+│   │   ├── claude.yml
+│   │   ├── claude-code-review.yml
+│   │   └── release.yml
 │   ├── dependabot.yml
-│   └── workflows/
-│       ├── claude.yml
-│       ├── claude-code-review.yml
-│       └── release.yml
+│   └── pull_request_template.md
 ├── manifest.json        # 拡張機能マニフェスト (Manifest V3)
 ├── background.js        # Service Worker（メニュー・ダウンロード管理）
 ├── icons/
@@ -100,6 +105,6 @@ CORS制限・Canvas変換失敗等、あらゆるエラーケースで元画像U
 
 1. `chrome://extensions` でデベロッパーモードをON
 1. 「パッケージ化されていない拡張機能を読み込む」でこのフォルダを選択
-1. 通常のWebページ（<https://example.com>）で画像を右クリックし、各フォーマット（PNG/JPG/WebP）で変換・保存を確認
+1. 通常のWebページで画像を右クリックし、各フォーマット（PNG/JPG/WebP）で変換・保存を確認
 1. アニメーションGIF・SVGがそのまま保存されることを確認
 1. `chrome://` 等の制限ページでは変換されず元画像がダウンロードされることを確認
