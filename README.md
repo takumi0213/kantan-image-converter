@@ -126,6 +126,7 @@ kantan-image-converter/
 ├── AGENTS.md            # AI エージェント向け仕様ドキュメント
 ├── CONTRIBUTING.md      # コントリビューションガイド
 ├── SECURITY.md          # セキュリティポリシー
+├── README.md            # プロジェクト概要
 └── LICENSE              # GNU General Public License v3.0
 ```
 
