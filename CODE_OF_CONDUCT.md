@@ -72,4 +72,4 @@
 
 この行動規範は、[Contributor Covenant](https://www.contributor-covenant.org) バージョン 2.1 を参考に作成されています。
 
-コミュニティへの影響ガイドラインは [Mozilla の行動規範の施行ステップ](https://github.com/mozilla/diversity)に触発されたものです。
+コミュニティへの影響ガイドラインは [Mozilla の行動規範の施行ステップ](https://github.com/mozilla/diversity) に触発されたものです。
