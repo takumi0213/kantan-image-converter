@@ -126,9 +126,7 @@ kantan-image-converter/
 ├── AGENTS.md            # AI エージェント向け仕様ドキュメント
 ├── CONTRIBUTING.md      # コントリビューションガイド
 ├── SECURITY.md          # セキュリティポリシー
-├── LICENSE              # PolyForm Noncommercial 1.0.0
-├── LICENSE-JP           # ライセンス日本語参考訳
-└── README.md
+└── LICENSE              # GNU General Public License v3.0
 ```
 
 ## コントリビューション
@@ -152,6 +150,6 @@ kantan-image-converter/
 
 ## ライセンス
 
-[PolyForm Noncommercial 1.0.0](LICENSE) — 非商用目的での利用・変更・再配布が可能です。商用利用はできません。
+[GNU General Public License v3.0](LICENSE)
 
-日本語での概要は [LICENSE-JP](LICENSE-JP) を参照してください（参考訳であり、法的効力は英語原文に準拠します）。
+このソフトウェアはフリーソフトウェアです。GNU GPLv3の条件のもとで、自由に使用・変更・再配布できます。派生物を配布する場合は、同じく GNU GPLv3 のもとでソースコードを公開する必要があります。
