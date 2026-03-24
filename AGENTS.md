@@ -2,9 +2,9 @@
 
 ## プロジェクト概要
 
-**かんたん画像変換** は、Webページの画像を右クリックメニューからJPG・PNG・WebPに変換して保存できるChrome拡張機能です。
+**かんたん画像変換** は、Webページの画像を右クリックメニューからJPG・PNG・WebPに変換して保存できるChromium系拡張機能です。
 
-- **種別**: Chrome拡張機能（Manifest V3）
+- **種別**: Chromium系拡張機能（Manifest V3）
 - **言語**: JavaScript（バニラ、フレームワーク不使用）
 - **依存パッケージ**: なし（外部ライブラリ・npm 不使用）
 - **ライセンス**: GNU General Public License v3.0
@@ -24,6 +24,7 @@ kantan-image-converter/
 │   └── workflows/
 │       ├── claude.yml
 │       ├── claude-code-review.yml
+│       ├── pages.yml
 │       └── release.yml
 ├── manifest.json        # 拡張機能マニフェスト (Manifest V3)
 ├── background.js        # Service Worker（メニュー・ダウンロード管理）
@@ -35,6 +36,8 @@ kantan-image-converter/
 │   ├── popup.html
 │   ├── popup.js
 │   └── demo.html
+├── website/
+│   └── index.html       # 紹介ページ（GitHub Pages で公開）
 ├── tools/
 │   └── generate_icons.py
 ├── CLAUDE.md
