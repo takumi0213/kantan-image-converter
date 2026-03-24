@@ -39,8 +39,10 @@ kantan-image-converter/
 │   └── generate_icons.py
 ├── CLAUDE.md
 ├── AGENTS.md
+├── CODE_OF_CONDUCT.md   # 行動規範（Contributor Covenant 2.1 ベース）
 ├── CONTRIBUTING.md
 ├── SECURITY.md
+├── SUPPORT.md           # サポート窓口案内
 ├── LICENSE
 └── README.md
 ```
