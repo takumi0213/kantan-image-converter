@@ -41,7 +41,8 @@ kantan-image-converter/
 ├── AGENTS.md
 ├── CONTRIBUTING.md
 ├── SECURITY.md
-└── LICENSE
+├── LICENSE
+└── README.md
 ```
 
 ## 処理フロー
