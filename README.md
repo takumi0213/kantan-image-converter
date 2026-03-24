@@ -124,8 +124,10 @@ kantan-image-converter/
 │   └── generate_icons.py  # アイコン生成スクリプト（開発用）
 ├── CLAUDE.md            # Claude Code 用プロジェクトガイド
 ├── AGENTS.md            # AI エージェント向け仕様ドキュメント
+├── CODE_OF_CONDUCT.md   # 行動規範
 ├── CONTRIBUTING.md      # コントリビューションガイド
 ├── SECURITY.md          # セキュリティポリシー
+├── SUPPORT.md           # サポート窓口案内
 ├── README.md            # プロジェクト概要
 └── LICENSE              # GNU General Public License v3.0
 ```
@@ -133,6 +135,10 @@ kantan-image-converter/
 ## コントリビューション
 
 バグ報告・機能提案・PRを歓迎します。詳細は [CONTRIBUTING.md](CONTRIBUTING.md) を参照してください。
+
+本プロジェクトは [行動規範（CODE_OF_CONDUCT.md）](CODE_OF_CONDUCT.md) を定めています。コミュニティへの参加にあたってはご一読ください。
+
+質問やサポートが必要な場合は [SUPPORT.md](SUPPORT.md) をご確認ください。
 
 セキュリティ上の問題を発見した場合は、Issue ではなく [SECURITY.md](SECURITY.md) に記載の手順で非公開でご報告ください。
 
