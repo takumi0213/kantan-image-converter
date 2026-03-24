@@ -36,7 +36,7 @@
 
 ## 報告
 
-侮辱的、ハラスメント的、またはその他の許容できない行動があった場合は、[GitHub のプライベートな脆弱性報告](https://github.com/takumi0213/kantan-image-converter/security/advisories/new)または Issue のコメントからメンテナーに報告してください。すべての苦情は迅速かつ公正にレビューおよび調査されます。
+侮辱的、ハラスメント的、またはその他の許容できない行動があった場合は、GitHub の [Private Vulnerability Reporting](https://github.com/takumi0213/kantan-image-converter/security/advisories/new)または Issue のコメントからメンテナーに報告してください。すべての苦情は迅速かつ公正にレビューおよび調査されます。
 
 メンテナーは、インシデントの報告者のプライバシーと安全を尊重する義務があります。
 
