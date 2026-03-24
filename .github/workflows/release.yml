@@ -33,7 +33,6 @@ jobs:
           cp docs/popup.js "$DIST_DIR/docs/"
           cp docs/demo.html "$DIST_DIR/docs/"
           cp LICENSE "$DIST_DIR/"
-          cp LICENSE-JP "$DIST_DIR/"
 
           # ZIP作成
           zip -r "kantan-image-converter-${GITHUB_REF_NAME}.zip" "$DIST_DIR"

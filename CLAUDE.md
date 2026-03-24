@@ -89,3 +89,7 @@ python tools/generate_icons.py
 3. 通常のWebページで画像を右クリックして動作確認（chrome:// 等の特殊ページでは変換不可）
 4. Service Worker の「inspect」からDevToolsを開く
 5. content script のログはページのDevTools Consoleに表示
+
+## ライセンス
+
+GNU General Public License v3.0

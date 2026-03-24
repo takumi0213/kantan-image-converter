@@ -7,7 +7,7 @@
 - **種別**: Chrome拡張機能（Manifest V3）
 - **言語**: JavaScript（バニラ、フレームワーク不使用）
 - **依存パッケージ**: なし（外部ライブラリ・npm 不使用）
-- **ライセンス**: PolyForm Noncommercial 1.0.0
+- **ライセンス**: GNU General Public License v3.0
 - **SSOT**: 実装コード（`background.js`, `manifest.json`）が正。ドキュメントはコードに追従する。
 
 ## リポジトリ構成
@@ -42,7 +42,6 @@ kantan-image-converter/
 ├── CONTRIBUTING.md
 ├── SECURITY.md
 ├── LICENSE
-├── LICENSE-JP
 └── README.md
 ```
 
