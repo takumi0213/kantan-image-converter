@@ -33,6 +33,15 @@
 
     html { scroll-behavior: smooth; }
 
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+      .context-menu {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
     body {
       font-family: "Noto Sans JP", sans-serif;
       color: var(--text);
