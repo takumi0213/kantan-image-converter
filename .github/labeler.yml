@@ -1,0 +1,46 @@
+# .github/labeler.yml
+# actions/labeler v5 の構文
+# https://github.com/actions/labeler
+
+manifest:
+  - changed-files:
+      - any-glob-to-any-file: "manifest.json"
+
+runtime:
+  - changed-files:
+      - any-glob-to-any-file: "background.js"
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "website/**"
+          - "README.md"
+          - "CONTRIBUTING.md"
+          - "SECURITY.md"
+          - "SUPPORT.md"
+          - "CLAUDE.md"
+          - "AGENTS.md"
+          - "CODE_OF_CONDUCT.md"
+
+assets:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "icons/**"
+          - "tools/**"
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/**"
+          - ".github/labeler.yml"
+          - ".github/dependabot.yml"
+          - "eslint.config.js"
+          - "package.json"
+          - "package-lock.json"
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "tests/**"
+          - "scripts/**"
