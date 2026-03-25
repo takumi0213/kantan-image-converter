@@ -159,7 +159,7 @@ async function handleImageSave(info, tab, formatKey) {
   if (/^(chrome|edge|about|devtools)/i.test(tabUrl)) {
     try {
       await downloadOriginal(srcUrl, filename);
-    } catch (_dlErr) {
+    } catch {
       reportError("画像の保存に失敗しました。");
     }
     return;
