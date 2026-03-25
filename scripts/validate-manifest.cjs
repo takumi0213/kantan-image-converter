@@ -46,9 +46,23 @@ check("background.service_worker が存在する",
   typeof manifest.background?.service_worker === "string" &&
   manifest.background.service_worker.length > 0);
 
+const swPath = manifest.background?.service_worker;
+if (typeof swPath === "string" && swPath.length > 0) {
+  const swAbs = path.resolve(ROOT, swPath);
+  const swIsFile = (() => { try { return fs.statSync(swAbs).isFile(); } catch { return false; } })();
+  check(`background.service_worker ファイルが存在する (${swPath})`, swIsFile);
+}
+
 check("action.default_popup が存在する",
   typeof manifest.action?.default_popup === "string" &&
   manifest.action.default_popup.length > 0);
+
+const popupPath = manifest.action?.default_popup;
+if (typeof popupPath === "string" && popupPath.length > 0) {
+  const popupAbs = path.resolve(ROOT, popupPath);
+  const popupIsFile = (() => { try { return fs.statSync(popupAbs).isFile(); } catch { return false; } })();
+  check(`action.default_popup ファイルが存在する (${popupPath})`, popupIsFile);
+}
 
 // icons
 const iconSizes = ["16", "48", "128"];
