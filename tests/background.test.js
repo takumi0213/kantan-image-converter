@@ -1,15 +1,24 @@
 "use strict";
-
+ 
 // =====================================================
 // background.js から純粋関数を再定義してテスト
 // Chrome APIに依存しない関数のみ対象
+//
+// 【注意】このファイルは background.js の純粋関数を「再定義」している。
+// background.js 側の実装を変更した場合は、このファイルの対応する関数も
+// 必ず同期すること。
+//
+// 別ファイルへの切り出しによる共有参照は行っていない。
+// Manifest V3 の Service Worker は単一ファイル構成が基本であり、
+// import / importScripts() の導入はアーキテクチャの複雑化を招くため、
+// プロジェクトの設計方針（シンプルさの維持・外部依存の排除）と相容れない。
 // =====================================================
-
+ 
 // ---- 定数 ----
 const ALLOWED_SCHEMES = ["http:", "https:", "data:", "blob:"];
-
+ 
 // ---- テスト対象関数 ----
-
+ 
 function menuIdToFormat(menuItemId) {
   switch (menuItemId) {
     case "kantan-image-jpg":  return "jpg";
@@ -18,7 +27,7 @@ function menuIdToFormat(menuItemId) {
     default:                  return null;
   }
 }
-
+ 
 function isAllowedScheme(srcUrl) {
   if (!srcUrl) return false;
   for (const scheme of ALLOWED_SCHEMES) {
@@ -26,7 +35,7 @@ function isAllowedScheme(srcUrl) {
   }
   return false;
 }
-
+ 
 function extractBaseName(srcUrl) {
   if (srcUrl.startsWith("data:") || srcUrl.startsWith("blob:")) return "";
   try {
@@ -42,13 +51,13 @@ function extractBaseName(srcUrl) {
     return "";
   }
 }
-
+ 
 function removeExtension(filename) {
   const lastDot = filename.lastIndexOf(".");
   if (lastDot > 0) return filename.substring(0, lastDot);
   return filename;
 }
-
+ 
 function sanitizeFilename(filename) {
   return filename
     .replace(/\0/g, "")
@@ -58,7 +67,7 @@ function sanitizeFilename(filename) {
     .replace(/\s+/g, "_")
     .substring(0, 200);
 }
-
+ 
 function generateDatetimeFilename() {
   const now = new Date();
   const y   = now.getFullYear();
@@ -69,7 +78,7 @@ function generateDatetimeFilename() {
   const s   = String(now.getSeconds()).padStart(2, "0");
   return `${y}${m}${d}_${h}${min}${s}`;
 }
-
+ 
 function getOriginalExt(srcUrl) {
   try {
     if (srcUrl.startsWith("data:")) {
@@ -90,7 +99,7 @@ function getOriginalExt(srcUrl) {
   }
   return ".png";
 }
-
+ 
 function buildFilename(srcUrl, ext) {
   let baseName = extractBaseName(srcUrl);
   if (!baseName) baseName = generateDatetimeFilename();
@@ -99,14 +108,14 @@ function buildFilename(srcUrl, ext) {
   if (!baseName) baseName = generateDatetimeFilename();
   return baseName + ext;
 }
-
+ 
 // =====================================================
 // テストランナー（依存ゼロ）
 // =====================================================
-
+ 
 let passed = 0;
 let failed = 0;
-
+ 
 function assert(description, actual, expected) {
   if (actual === expected) {
     console.log(`  ✓ ${description}`);
@@ -118,7 +127,7 @@ function assert(description, actual, expected) {
     failed++;
   }
 }
-
+ 
 function assertMatch(description, actual, pattern) {
   if (pattern.test(actual)) {
     console.log(`  ✓ ${description}`);
@@ -130,24 +139,24 @@ function assertMatch(description, actual, pattern) {
     failed++;
   }
 }
-
+ 
 function assertTrue(description, value) {
   assert(description, value, true);
 }
-
+ 
 function assertFalse(description, value) {
   assert(description, value, false);
 }
-
+ 
 function group(name, fn) {
   console.log(`\n${name}`);
   fn();
 }
-
+ 
 // =====================================================
 // テストケース
 // =====================================================
-
+ 
 group("menuIdToFormat", () => {
   assert("jpg メニューID",  menuIdToFormat("kantan-image-jpg"),  "jpg");
   assert("png メニューID",  menuIdToFormat("kantan-image-png"),  "png");
@@ -156,7 +165,7 @@ group("menuIdToFormat", () => {
   assert("不明ID は null",       menuIdToFormat("unknown"),              null);
   assert("空文字は null",         menuIdToFormat(""),                    null);
 });
-
+ 
 group("isAllowedScheme", () => {
   assertTrue("http:// を許可",    isAllowedScheme("http://example.com/img.png"));
   assertTrue("https:// を許可",   isAllowedScheme("https://example.com/img.png"));
@@ -167,7 +176,7 @@ group("isAllowedScheme", () => {
   assertFalse("null を拒否",      isAllowedScheme(null));
   assertFalse("空文字を拒否",     isAllowedScheme(""));
 });
-
+ 
 group("extractBaseName", () => {
   assert("通常URL",
     extractBaseName("https://example.com/path/photo.jpg"),
@@ -188,14 +197,14 @@ group("extractBaseName", () => {
     extractBaseName("https://example.com/%E7%94%BB%E5%83%8F.png"),
     "画像.png");
 });
-
+ 
 group("removeExtension", () => {
   assert("拡張子を除去",        removeExtension("photo.jpg"),     "photo");
   assert("複数ドット",          removeExtension("my.photo.jpg"),  "my.photo");
   assert("拡張子なし",          removeExtension("noext"),         "noext");
   assert("先頭ドットは除去しない", removeExtension(".htaccess"), ".htaccess");
 });
-
+ 
 group("sanitizeFilename", () => {
   assert("スラッシュを除去",            sanitizeFilename("path/to/file"),    "pathtofile");
   assert("バックスラッシュを除去",      sanitizeFilename("path\\file"),      "pathfile");
@@ -209,13 +218,13 @@ group("sanitizeFilename", () => {
     200);
   assert("正常な文字列はそのまま",      sanitizeFilename("normal_file-1"),    "normal_file-1");
 });
-
+ 
 group("generateDatetimeFilename", () => {
   const name = generateDatetimeFilename();
   assertMatch("YYYYMMDD_HHMMSS 形式", name, /^\d{8}_\d{6}$/);
   assert("15文字の固定長", name.length, 15);
 });
-
+ 
 group("getOriginalExt", () => {
   assert(".jpg URL",     getOriginalExt("https://example.com/img.jpg"),  ".jpg");
   assert(".jpeg URL",    getOriginalExt("https://example.com/img.jpeg"), ".jpg");
@@ -230,7 +239,7 @@ group("getOriginalExt", () => {
   assert("不明は .png",  getOriginalExt("https://example.com/img"),      ".png");
   assert("拡張子なし",   getOriginalExt("https://example.com/"),         ".png");
 });
-
+ 
 group("buildFilename", () => {
   assert("通常URL",
     buildFilename("https://example.com/photo.jpg", ".png"),
@@ -249,13 +258,13 @@ group("buildFilename", () => {
     buildFilename("blob:https://example.com/id", ".jpg"),
     /^\d{8}_\d{6}\.jpg$/);
 });
-
+ 
 // =====================================================
 // 結果
 // =====================================================
-
+ 
 console.log(`\n${"─".repeat(40)}`);
 console.log(`Results: ${passed} passed, ${failed} failed`);
 console.log("─".repeat(40));
-
+ 
 if (failed > 0) process.exit(1);
