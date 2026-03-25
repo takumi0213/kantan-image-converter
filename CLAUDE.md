@@ -139,6 +139,7 @@ Chrome API に依存する関数（`handleImageSave` 等）は手動テスト対
 | `pr-labeler.yml` | PR open/update | 変更ファイルに応じたラベル自動付与 |
 | `pr-guard.yml` | PR (manifest/background/popup変更時) | 手動確認チェックリストをコメント投稿 |
 | `update-lockfile.yml` | package.json push / 手動 | package-lock.json 更新 PR を自動作成 |
+| `stale.yml` | 毎日 / 手動 | 60日放置の Issue を stale 化、7日後にクローズ |
 | `pages.yml` | website/ push | GitHub Pages デプロイ |
  
 Dependabot（`.github/dependabot.yml`）は GitHub Actions と npm の2エコシステムを週次で監視し、依存バージョンの更新 PR を自動作成する。
