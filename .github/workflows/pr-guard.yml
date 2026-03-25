@@ -22,29 +22,28 @@ jobs:
     continue-on-error: true
 
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
       - name: Detect changed files
         id: changes
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          CHANGED=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" 2>/dev/null || git diff --name-only HEAD~1 HEAD)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const files = await github.paginate(
+              github.rest.pulls.listFiles,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+              }
+            );
+            const names = files.map(f => f.filename);
 
-          MANIFEST=false
-          BACKGROUND=false
-          POPUP=false
+            const manifest   = names.includes("manifest.json");
+            const background = names.includes("background.js");
+            const popup      = names.some(n => n === "docs/popup.html" || n === "docs/popup.js");
 
-          echo "$CHANGED" | grep -q "^manifest\.json$"        && MANIFEST=true   || true
-          echo "$CHANGED" | grep -q "^background\.js$"        && BACKGROUND=true || true
-          echo "$CHANGED" | grep -qE "^docs/popup\.(html|js)$" && POPUP=true     || true
-
-          echo "manifest=$MANIFEST"     >> "$GITHUB_OUTPUT"
-          echo "background=$BACKGROUND" >> "$GITHUB_OUTPUT"
-          echo "popup=$POPUP"           >> "$GITHUB_OUTPUT"
+            core.setOutput("manifest",   String(manifest));
+            core.setOutput("background", String(background));
+            core.setOutput("popup",      String(popup));
 
       # manifest.json が変更された場合のみコメント
       - name: Comment – manifest changed
