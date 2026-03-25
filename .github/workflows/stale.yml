@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/stale@v9
+      - uses: actions/stale@v10
         with:
           # Issue: 60日反応なし → stale、さらに7日後クローズ
           days-before-stale: 60
