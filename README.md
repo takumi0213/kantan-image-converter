@@ -1,6 +1,8 @@
 # かんたん画像変換
 
-Webページの画像を右クリックでJPG・PNG・WebPに変換して保存できるChrome拡張機能です。
+Webページの画像を右クリックでJPG・PNG・WebPに変換して保存できるChromium系ブラウザ向け拡張機能です。
+
+**紹介ページ**: https://takumi0213.github.io/kantan-image-converter/
 
 > [!NOTE]
 > Created by Claude Code
@@ -120,6 +122,8 @@ kantan-image-converter/
 │   ├── popup.html       # ツールバーポップアップ
 │   ├── popup.js         # ポップアップロジック
 │   └── demo.html        # デモ・使い方ガイド
+├── website/
+│   └── index.html       # 紹介ページ（GitHub Pages で公開）
 ├── tools/
 │   └── generate_icons.py  # アイコン生成スクリプト（開発用）
 ├── CLAUDE.md            # Claude Code 用プロジェクトガイド

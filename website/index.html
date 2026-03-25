@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>かんたん画像変換 — 右クリックで変換・保存</title>
+  <meta name="description" content="Webページの画像を右クリックでJPG・PNG・WebPに変換して保存できるChromium系ブラウザ向け拡張機能。外部通信なし、ローカル完結。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #2563eb;
+      --blue-dark: #1d4ed8;
+      --blue-light: #dbeafe;
+      --blue-pale: #eff6ff;
+      --accent: #f97316;
+      --accent-light: #fff7ed;
+      --text: #0f172a;
+      --text-mid: #475569;
+      --text-light: #94a3b8;
+      --border: #e2e8f0;
+      --bg: #ffffff;
+      --bg-subtle: #f8fafc;
+      --radius: 12px;
+      --radius-lg: 20px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+      --shadow: 0 4px 16px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.06);
+      --shadow-lg: 0 20px 40px rgba(0,0,0,.1), 0 8px 16px rgba(0,0,0,.06);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+      .context-menu {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+    body {
+      font-family: "Noto Sans JP", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ========== LAYOUT ========== */
+    .container {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    section { padding: 80px 0; }
+    section + section { border-top: 1px solid var(--border); }
+
+    /* ========== NAV ========== */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-inner {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+      letter-spacing: -.01em;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 24px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 13px;
+      color: var(--text-mid);
+      text-decoration: none;
+      transition: color .15s;
+    }
+
+    .nav-links a:hover { color: var(--blue); }
+
+    /* ========== HERO ========== */
+    .hero {
+      padding: 96px 0 80px;
+      border-bottom: 1px solid var(--border);
+      background:
+        radial-gradient(ellipse 60% 50% at 70% 40%, rgba(37,99,235,.06) 0%, transparent 70%),
+        var(--bg);
+    }
+
+    .hero-inner {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 56px;
+      align-items: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      background: var(--blue-pale);
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 99px;
+      margin-bottom: 20px;
+      border: 1px solid var(--blue-light);
+    }
+
+    .hero-badge svg { flex-shrink: 0; }
+
+    h1 {
+      font-size: clamp(28px, 4vw, 38px);
+      font-weight: 700;
+      letter-spacing: -.03em;
+      line-height: 1.25;
+      margin-bottom: 16px;
+    }
+
+    h1 em {
+      font-style: normal;
+      color: var(--blue);
+    }
+
+    .hero-desc {
+      font-size: 16px;
+      color: var(--text-mid);
+      margin-bottom: 32px;
+      line-height: 1.8;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 22px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all .15s;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--blue);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(37,99,235,.3);
+    }
+
+    .btn-primary:hover {
+      background: var(--blue-dark);
+      box-shadow: 0 4px 12px rgba(37,99,235,.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--bg);
+      color: var(--text);
+      border: 1.5px solid var(--border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+      transform: translateY(-1px);
+    }
+
+    /* ========== CONTEXT MENU MOCKUP ========== */
+    .hero-visual {
+      position: relative;
+    }
+
+    .browser-mockup {
+      background: #f1f5f9;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border);
+    }
+
+    .browser-bar {
+      background: #e2e8f0;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .browser-dots {
+      display: flex;
+      gap: 5px;
+    }
+
+    .browser-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .browser-dot:nth-child(1) { background: #fc605b; }
+    .browser-dot:nth-child(2) { background: #fdbc40; }
+    .browser-dot:nth-child(3) { background: #35cd4b; }
+
+    .browser-url {
+      flex: 1;
+      background: #fff;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 11px;
+      color: var(--text-mid);
+      font-family: "DM Mono", monospace;
+    }
+
+    .browser-content {
+      position: relative;
+      background: #fff;
+      padding: 20px;
+      min-height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* サンプル画像 */
+    .sample-image-frame {
+      width: 100%;
+      height: 140px;
+      background: linear-gradient(135deg, #bfdbfe 0%, #ddd6fe 50%, #fde68a 100%);
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sample-image-frame svg {
+      opacity: .4;
+    }
+
+    /* コンテキストメニュー */
+    .context-menu {
+      position: absolute;
+      top: 32px;
+      right: 24px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.18), 0 2px 8px rgba(0,0,0,.1);
+      width: 196px;
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,.08);
+      animation: menuAppear .3s cubic-bezier(.34,1.56,.64,1) both;
+    }
+
+    @keyframes menuAppear {
+      from { opacity: 0; transform: scale(.95) translateY(-4px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .menu-item {
+      padding: 7px 14px;
+      font-size: 12.5px;
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .menu-item:hover { background: #f1f5f9; }
+
+    .menu-item.parent {
+      font-weight: 700;
+      color: var(--blue);
+      background: var(--blue-pale);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .menu-divider { height: 1px; background: var(--border); }
+
+    .menu-sub {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .format-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-family: "DM Mono", monospace;
+    }
+
+    .badge-png { background: #dcfce7; color: #166534; }
+    .badge-jpg { background: #fef9c3; color: #854d0e; }
+    .badge-webp { background: #ede9fe; color: #5b21b6; }
+
+    .menu-arrow {
+      color: var(--text-light);
+      font-size: 10px;
+    }
+
+    /* ========== FEATURES ========== */
+    h2 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      margin-bottom: 8px;
+    }
+
+    .section-lead {
+      color: var(--text-mid);
+      font-size: 15px;
+      margin-bottom: 40px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .feature-card {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px 20px;
+      transition: box-shadow .15s, transform .15s;
+    }
+
+    .feature-card:hover {
+      box-shadow: var(--shadow);
+      transform: translateY(-2px);
+    }
+
+    .feature-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--blue-pale);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      color: var(--blue);
+    }
+
+    .feature-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .feature-desc {
+      font-size: 13px;
+      color: var(--text-mid);
+      line-height: 1.7;
+    }
+
+    /* ========== HOW TO USE ========== */
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      gap: 20px;
+      padding: 28px 0;
+      position: relative;
+    }
+
+    .step + .step { border-top: 1px solid var(--border); }
+
+    .step-num-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .step-num {
+      width: 36px;
+      height: 36px;
+      background: var(--blue);
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      flex-shrink: 0;
+      font-family: "DM Mono", monospace;
+    }
+
+    .step-content h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      padding-top: 6px;
+    }
+
+    .step-content p {
+      font-size: 14px;
+      color: var(--text-mid);
+    }
+
+    .step-content code {
+      font-family: "DM Mono", monospace;
+      font-size: 12px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      padding: 1px 6px;
+      border-radius: 4px;
+      color: var(--blue);
+    }
+
+    /* ========== INSTALL ========== */
+    .install-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .install-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      background: var(--bg-subtle);
+    }
+
+    .install-card h3 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .install-card .note {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-bottom: 16px;
+    }
+
+    .install-steps {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .install-steps li {
+      font-size: 13px;
+      color: var(--text-mid);
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .install-steps .n {
+      width: 20px;
+      height: 20px;
+      background: var(--blue-light);
+      color: var(--blue);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+      font-family: "DM Mono", monospace;
+    }
+
+    .attestation-box {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      min-width: 0;
+    }
+
+    .attestation-box svg { flex-shrink: 0; margin-top: 2px; }
+
+    .attestation-box > div {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .attestation-box p {
+      font-size: 13px;
+      color: var(--text-mid);
+    }
+
+    .attestation-box code {
+      display: block;
+      margin-top: 8px;
+      font-family: "DM Mono", monospace;
+      font-size: 12px;
+      background: #fff;
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 6px;
+      color: var(--text);
+      overflow-x: auto;
+      white-space: nowrap;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
+    /* ========== FAQ ========== */
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    details {
+      border-top: 1px solid var(--border);
+      padding: 20px 0;
+    }
+
+    details:last-child { border-bottom: 1px solid var(--border); }
+
+    summary {
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    summary::-webkit-details-marker { display: none; }
+
+    .summary-icon {
+      width: 20px;
+      height: 20px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--text-mid);
+      font-size: 14px;
+      transition: background .15s, color .15s;
+    }
+
+    details[open] .summary-icon {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+
+    details[open] .summary-icon::after { content: "−"; }
+    details:not([open]) .summary-icon::after { content: "+"; }
+
+    .faq-answer {
+      font-size: 14px;
+      color: var(--text-mid);
+      margin-top: 12px;
+      line-height: 1.8;
+    }
+
+    .faq-answer ul {
+      margin-top: 8px;
+      margin-left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    /* ========== FOOTER ========== */
+    footer {
+      background: var(--bg-subtle);
+      border-top: 1px solid var(--border);
+      padding: 40px 0;
+    }
+
+    .footer-inner {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .footer-left {
+      font-size: 13px;
+      color: var(--text-mid);
+    }
+
+    .footer-left strong {
+      display: block;
+      font-size: 14px;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 20px;
+      list-style: none;
+    }
+
+    .footer-links a {
+      font-size: 13px;
+      color: var(--text-mid);
+      text-decoration: none;
+      transition: color .15s;
+    }
+
+    .footer-links a:hover { color: var(--blue); }
+
+    /* ========== NOTICE BOX ========== */
+    .notice-box {
+      margin-top: 32px;
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: var(--radius);
+      padding: 20px 24px;
+    }
+
+    .notice-title {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #92400e;
+      margin-bottom: 12px;
+    }
+
+    .notice-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .notice-list li {
+      font-size: 13px;
+      color: #78350f;
+      padding-left: 14px;
+      position: relative;
+    }
+
+    .notice-list li::before {
+      content: "·";
+      position: absolute;
+      left: 0;
+      font-weight: 700;
+    }
+
+    /* ========== CONTRIBUTE BOX ========== */
+    .contribute-box {
+      margin-top: 32px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .contribute-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .contribute-desc {
+      font-size: 13px;
+      color: var(--text-mid);
+      max-width: 480px;
+    }
+
+    .contribute-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    /* ========== TECH SPEC ========== */
+    .spec-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .spec-block {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    .spec-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--blue);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      font-family: "DM Mono", monospace;
+      margin-bottom: 8px;
+    }
+
+    .spec-body {
+      font-size: 13px;
+      color: var(--text-mid);
+      line-height: 1.8;
+    }
+
+    .spec-body code {
+      font-family: "DM Mono", monospace;
+      font-size: 12px;
+      background: #fff;
+      border: 1px solid var(--border);
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: var(--text);
+    }
+
+    @media (max-width: 680px) {
+      .spec-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ========== UTILITIES ========== */
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 9px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      font-size: 12px;
+      color: var(--text-mid);
+      font-family: "DM Mono", monospace;
+    }
+
+    .tag-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 680px) {
+      .hero-inner { grid-template-columns: 1fr; }
+      .hero-visual { display: none; }
+      .features-grid { grid-template-columns: 1fr; }
+      .install-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+      section { padding: 56px 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">かんたん画像変換</a>
+    <ul class="nav-links">
+      <li><a href="#features">機能</a></li>
+      <li><a href="#howto">使い方</a></li>
+      <li><a href="#install">インストール</a></li>
+      <li><a href="#spec">技術仕様</a></li>
+      <li><a href="#faq">FAQ</a></li>
+      <li><a href="https://github.com/takumi0213/kantan-image-converter">GitHub</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-inner">
+      <div>
+        <div class="hero-badge">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+            <circle cx="6" cy="6" r="5" fill="#2563eb"/>
+            <path d="M4 6l1.5 1.5L8 4" stroke="#fff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Chromium系拡張機能 — Manifest V3
+        </div>
+        <h1>右クリックで<br><em>かんたん</em>に<br>画像を変換・保存</h1>
+        <p class="hero-desc">
+          Webページの画像をJPG・PNG・WebPに変換してダウンロード。<br>
+          すべての処理はブラウザ内で完結。外部サーバーへの通信なし。
+        </p>
+        <div class="hero-actions">
+          <a href="https://github.com/takumi0213/kantan-image-converter/releases" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M8 2v8M5 7l3 3 3-3M3 12h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            ダウンロード
+          </a>
+          <a href="https://github.com/takumi0213/kantan-image-converter" class="btn btn-secondary">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+            </svg>
+            GitHub
+          </a>
+        </div>
+        <div class="tag-row">
+          <span class="tag">無料・オープンソース</span>
+          <span class="tag">外部通信なし</span>
+          <span class="tag">GNU GPL v3.0</span>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="browser-mockup">
+          <div class="browser-bar">
+            <div class="browser-dots">
+              <div class="browser-dot"></div>
+              <div class="browser-dot"></div>
+              <div class="browser-dot"></div>
+            </div>
+            <div class="browser-url">https://example.com/gallery</div>
+          </div>
+          <div class="browser-content">
+            <div class="sample-image-frame">
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                <rect x="6" y="10" width="36" height="28" rx="3" stroke="#64748b" stroke-width="2"/>
+                <circle cx="17" cy="20" r="3" stroke="#64748b" stroke-width="2"/>
+                <path d="M6 32l10-8 7 7 5-5 8 9H6z" fill="#94a3b8" opacity=".5"/>
+              </svg>
+            </div>
+            <div class="context-menu">
+              <div class="menu-item parent">
+                <span>画像を変換して保存</span>
+                <span class="menu-arrow">▶</span>
+              </div>
+              <div class="menu-item">
+                <div class="menu-sub">
+                  <span class="format-badge badge-png">PNG</span>
+                  <span>PNG として保存</span>
+                </div>
+              </div>
+              <div class="menu-item">
+                <div class="menu-sub">
+                  <span class="format-badge badge-jpg">JPG</span>
+                  <span>JPG として保存</span>
+                </div>
+              </div>
+              <div class="menu-item">
+                <div class="menu-sub">
+                  <span class="format-badge badge-webp">WebP</span>
+                  <span>WebP として保存</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="container">
+    <h2>機能</h2>
+    <p class="section-lead">シンプルな操作で、必要なことだけをやります。</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <rect x="2" y="3" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M2 11l4-4 3 3 3-3 4 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="feature-title">3フォーマット対応</div>
+        <div class="feature-desc">JPG・PNG・WebP に変換して保存。元画像の形式を問わず変換できます。</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <path d="M9 2L9 12M6 9l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 14h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="feature-title">右クリックだけ</div>
+        <div class="feature-desc">画像を右クリック→フォーマット選択→保存。追加の操作は不要です。</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M9 6v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="feature-title">ローカル完結</div>
+        <div class="feature-desc">すべての変換処理はブラウザ内で実行。画像データが外部に送信されることはありません。</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <path d="M9 2l2 5h5l-4 3 1.5 5L9 12l-4.5 3L6 10 2 7h5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="feature-title">権限の最小化</div>
+        <div class="feature-desc"><code style="font-family:'DM Mono',monospace;font-size:11px;background:var(--blue-pale);color:var(--blue);padding:1px 5px;border-radius:3px">host_permissions</code> 不使用。必要最小限の4権限のみで動作し、ユーザー操作時のみアクセス権を取得します。</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <path d="M9 2l1.5 4.5H15l-3.75 2.75L12.75 14 9 11.25 5.25 14l1.5-4.75L3 6.5h4.5L9 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="feature-title">アニメーション対応</div>
+        <div class="feature-desc">アニメーションGIF・WebPは変換せず元の形式のまま保存。SVGも同様です。</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <rect x="3" y="3" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M6 9h6M9 6v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="feature-title">フォールバック保存</div>
+        <div class="feature-desc">変換に失敗した場合でも、元画像をそのままダウンロードします。保存に失敗しません。</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <path d="M9 16A7 7 0 109 2a7 7 0 000 14z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M9 6v4l2.5 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="feature-title">ファイル名を自動生成</div>
+        <div class="feature-desc">元画像のURLからファイル名を取得。取得できない場合は日時形式で自動命名します。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW TO USE -->
+<section id="howto">
+  <div class="container">
+    <h2>使い方</h2>
+    <p class="section-lead">3ステップで変換・保存できます。</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num-wrap">
+          <div class="step-num">1</div>
+        </div>
+        <div class="step-content">
+          <h3>画像を右クリック</h3>
+          <p>Webページ上の保存したい画像を右クリックしてコンテキストメニューを開きます。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num-wrap">
+          <div class="step-num">2</div>
+        </div>
+        <div class="step-content">
+          <h3>フォーマットを選択</h3>
+          <p>「画像を変換して保存」を選び、保存したい形式（<code>PNG</code> / <code>JPG</code> / <code>WebP</code>）をクリックします。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num-wrap">
+          <div class="step-num">3</div>
+        </div>
+        <div class="step-content">
+          <h3>保存先を確認して保存</h3>
+          <p>「名前を付けて保存」ダイアログが表示されます。ファイル名と保存先を確認して保存してください。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="notice-box">
+      <div class="notice-title">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+          <circle cx="7.5" cy="7.5" r="6.5" stroke="currentColor" stroke-width="1.4"/>
+          <path d="M7.5 5v3.5M7.5 10v.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        変換できないケース
+      </div>
+      <ul class="notice-list">
+        <li><strong>chrome:// など特殊ページ</strong> — ブラウザのセキュリティ制約によりスクリプト注入不可。元の形式のままダウンロードされます。</li>
+        <li><strong>アニメーションGIF / アニメーションWebP</strong> — 変換するとアニメーションが失われるため、元の形式のまま保存します。</li>
+        <li><strong>SVG画像</strong> — 変換せず元の形式のまま保存します。</li>
+        <li><strong>CORS制限がある画像</strong> — 変換に失敗した場合は元画像URLをそのままダウンロードします（フォールバック）。</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- INSTALL -->
+<section id="install">
+  <div class="container">
+    <h2>インストール</h2>
+    <p class="section-lead">Chrome Web Store未掲載のため、手動でインストールします。</p>
+    <div class="install-grid">
+      <div class="install-card">
+        <h3>ZIPファイルからインストール</h3>
+        <p class="note">通常の手順</p>
+        <ol class="install-steps">
+          <li><span class="n">1</span><span><a href="https://github.com/takumi0213/kantan-image-converter/releases" style="color:var(--blue)">Releases</a> から最新の ZIP をダウンロード</span></li>
+          <li><span class="n">2</span><span>ZIP を展開する</span></li>
+          <li><span class="n">3</span><span>Chrome で <code>chrome://extensions</code> を開く</span></li>
+          <li><span class="n">4</span><span>「デベロッパーモード」を ON にする</span></li>
+          <li><span class="n">5</span><span>「パッケージ化されていない拡張機能を読み込む」で展開したフォルダを選択</span></li>
+        </ol>
+      </div>
+      <div class="install-card">
+        <h3>対応ブラウザ</h3>
+        <p class="note">Manifest V3 対応の Chromium 系ブラウザ</p>
+        <ol class="install-steps">
+          <li><span class="n">✓</span><span>Google Chrome</span></li>
+          <li><span class="n">✓</span><span>Microsoft Edge</span></li>
+          <li><span class="n">✓</span><span>Vivaldi</span></li>
+          <li><span class="n">✓</span><span>Brave</span></li>
+          <li><span class="n">✗</span><span>Firefox（未対応）</span></li>
+        </ol>
+      </div>
+    </div>
+    <div class="attestation-box">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+        <path d="M9 2l1.5 4.5H15l-3.75 2.75L12.75 14 9 11.25 5.25 14l1.5-4.75L3 6.5h4.5L9 2z" stroke="#2563eb" stroke-width="1.5" stroke-linejoin="round"/>
+      </svg>
+      <div>
+        <p>配布ZIPはGitHub Attestationで署名されています。以下のコマンドで公式CIからビルドされたことを検証できます。</p>
+        <code>gh attestation verify kantan-image-converter-vX.X.X.zip --owner takumi0213</code>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TECH SPEC -->
+<section id="spec">
+  <div class="container">
+    <h2>技術仕様</h2>
+    <p class="section-lead">シンプルな構成で、外部依存ゼロのバニラJavaScriptで実装されています。</p>
+
+    <div class="spec-grid">
+      <div class="spec-block">
+        <div class="spec-label">変換エンジン</div>
+        <div class="spec-body">
+          <code>OffscreenCanvas</code> + <code>convertToBlob()</code> でページ内変換。
+          content script を isolated world で注入し、ページ内の <code>&lt;img&gt;</code> 要素から Canvas に描画します。
+        </div>
+      </div>
+      <div class="spec-block">
+        <div class="spec-label">変換品質</div>
+        <div class="spec-body">
+          JPG・WebP は品質 <strong>92%</strong> で出力。人間の目でほぼ劣化が分からず、ファイルサイズを効率的に抑えるバランスポイントです。PNG はロスレス。
+        </div>
+      </div>
+      <div class="spec-block">
+        <div class="spec-label">必要な権限</div>
+        <div class="spec-body">
+          <code>contextMenus</code>（メニュー登録）、<code>downloads</code>（ダウンロード）、
+          <code>activeTab</code>（アクティブタブへのアクセス）、<code>scripting</code>（content script注入）の4つのみ。
+          <code>host_permissions</code> は使用しません。
+        </div>
+      </div>
+      <div class="spec-block">
+        <div class="spec-label">セキュリティ</div>
+        <div class="spec-body">
+          URLスキームを <code>http:</code> / <code>https:</code> / <code>data:</code> / <code>blob:</code> のみに制限。
+          ファイル名はパストラバーサル防止・nullバイト除去・特殊文字除去のサニタイズを適用。
+          配布ZIPには <a href="https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations" style="color:var(--blue)">GitHub Attestation</a> で署名しています。
+        </div>
+      </div>
+      <div class="spec-block">
+        <div class="spec-label">アーキテクチャ</div>
+        <div class="spec-body">
+          メイン処理は Service Worker（<code>background.js</code>）に集約したシンプル構成です（拡張機能のポップアップや <code>docs/</code> 配下のデモUIなどの画面は別HTMLとして実装）。
+          外部ライブラリ・npmパッケージ不使用。Manifest V3 準拠。
+        </div>
+      </div>
+      <div class="spec-block">
+        <div class="spec-label">ソースコード</div>
+        <div class="spec-body">
+          <a href="https://github.com/takumi0213/kantan-image-converter" style="color:var(--blue)">GitHub で公開</a>しています。
+          GNU GPL v3.0 のもとで自由に使用・変更・再配布できます。派生物を配布する場合は同じく GPL v3.0 でのソースコード公開が必要です。
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="container">
+    <h2>よくある質問</h2>
+    <p class="section-lead">使用上の疑問をまとめました。</p>
+    <div class="faq-list">
+      <details>
+        <summary>
+          <span>chrome:// や拡張機能ページで変換できないのはなぜですか？</span>
+          <span class="summary-icon"></span>
+        </summary>
+        <div class="faq-answer">
+          <code>chrome://</code>、<code>chrome-extension://</code>、<code>edge://</code> などの特殊なページでは、Chromiumのセキュリティ制約によりスクリプトを注入できません。そのため変換は行われず、元の形式のままダウンロードされます。通常のWebページ（<code>https://</code>）では正常に変換できます。
+        </div>
+      </details>
+      <details>
+        <summary>
+          <span>アニメーションGIFを変換しようとしたら、そのまま保存されました</span>
+          <span class="summary-icon"></span>
+        </summary>
+        <div class="faq-answer">
+          アニメーションGIF・アニメーションWebPは意図的に変換しない設計です。変換するとアニメーションが失われてしまうため、元の形式のまま保存します。静止画のGIFは通常通り変換されます。
+        </div>
+      </details>
+      <details>
+        <summary>
+          <span>画像データは外部に送信されますか？</span>
+          <span class="summary-icon"></span>
+        </summary>
+        <div class="faq-answer">
+          送信されません。すべての変換処理はブラウザ内（OffscreenCanvas）で完結しており、画像データが外部サーバーに送信されることは一切ありません。
+        </div>
+      </details>
+      <details>
+        <summary>
+          <span>変換に失敗した場合はどうなりますか？</span>
+          <span class="summary-icon"></span>
+        </summary>
+        <div class="faq-answer">
+          CORS制限・Canvas変換エラーなど、あらゆる失敗ケースでフォールバック処理が動作します。変換できなかった場合は元画像URLをそのままダウンロードするため、画像を取得できないケースは最小限に抑えられています。
+        </div>
+      </details>
+      <details>
+        <summary>
+          <span>商用利用はできますか？</span>
+          <span class="summary-icon"></span>
+        </summary>
+        <div class="faq-answer">
+          GNU GPL v3.0 のもとで配布されているため、商用・非商用を問わず使用・変更・再配布できます。ただし、派生物を配布する場合は同じく GPL v3.0 でのソースコード公開が必要です。詳細はリポジトリの <a href="https://github.com/takumi0213/kantan-image-converter/blob/main/LICENSE" style="color:var(--blue)">LICENSE</a> を参照してください。
+        </div>
+      </details>
+      <details>
+        <summary>
+          <span>Firefoxには対応していますか？</span>
+          <span class="summary-icon"></span>
+        </summary>
+        <div class="faq-answer">
+          現在は対応していません。本拡張機能はChromium系ブラウザ（Manifest V3）向けに設計されており、FirefoxのWebExtensions APIとは一部仕様が異なるため、そのままでは動作しません。
+        </div>
+      </details>
+    </div>
+
+    <div class="contribute-box">
+      <div>
+        <div class="contribute-title">バグ報告・機能提案</div>
+        <p class="contribute-desc">不具合を発見した場合や改善の提案は、GitHub Issues からお知らせください。セキュリティ上の問題は Issue ではなく Private Vulnerability Reporting からご報告ください。詳細は <a href="https://github.com/takumi0213/kantan-image-converter/blob/main/SUPPORT.md" style="color:var(--blue)">SUPPORT.md</a> をご確認ください。</p>
+      </div>
+      <div class="contribute-actions">
+        <a href="https://github.com/takumi0213/kantan-image-converter/issues/new?template=bug_report.yml" class="btn btn-secondary" style="font-size:13px; padding:8px 16px;">バグ報告</a>
+        <a href="https://github.com/takumi0213/kantan-image-converter/issues/new?template=feature_request.yml" class="btn btn-secondary" style="font-size:13px; padding:8px 16px;">機能提案</a>
+        <a href="https://github.com/takumi0213/kantan-image-converter/security/advisories/new" class="btn btn-secondary" style="font-size:13px; padding:8px 16px;">脆弱性報告</a>
+      </div>
+    </div>
+  </div>
+</section>
+<footer>
+  <div class="footer-inner">
+    <div class="footer-left">
+      <strong>かんたん画像変換</strong>
+      GNU General Public License v3.0 &nbsp;·&nbsp; Copyright © 2026 takumi0213
+    </div>
+    <ul class="footer-links">
+      <li><a href="https://github.com/takumi0213/kantan-image-converter">GitHub</a></li>
+      <li><a href="https://github.com/takumi0213/kantan-image-converter/releases">Releases</a></li>
+      <li><a href="https://github.com/takumi0213/kantan-image-converter/blob/main/CONTRIBUTING.md">Contributing</a></li>
+      <li><a href="https://github.com/takumi0213/kantan-image-converter/blob/main/CODE_OF_CONDUCT.md">Code of Conduct</a></li>
+      <li><a href="https://github.com/takumi0213/kantan-image-converter/security/advisories/new">Security</a></li>
+    </ul>
+  </div>
+</footer>
+
+</body>
+</html>
