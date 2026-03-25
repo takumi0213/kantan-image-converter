@@ -1,28 +1,30 @@
 name: PR Guard
- 
+
 on:
   pull_request:
     branches: [main]
+    types: [opened, ready_for_review, reopened]
     paths:
       - "manifest.json"
       - "background.js"
       - "docs/popup.html"
       - "docs/popup.js"
- 
+
 permissions:
   contents: read
   pull-requests: write
- 
+
 jobs:
   guard:
     name: Post Review Checklist
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
- 
+
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
- 
+
       - name: Detect changed files
         id: changes
         env:
@@ -30,19 +32,19 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           CHANGED=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" 2>/dev/null || git diff --name-only HEAD~1 HEAD)
- 
+
           MANIFEST=false
           BACKGROUND=false
           POPUP=false
- 
+
           echo "$CHANGED" | grep -q "^manifest\.json$"   && MANIFEST=true    || true
           echo "$CHANGED" | grep -q "^background\.js$"   && BACKGROUND=true  || true
           echo "$CHANGED" | grep -qE "^docs/popup\.(html|js)$" && POPUP=true || true
- 
+
           echo "manifest=$MANIFEST"   >> "$GITHUB_OUTPUT"
           echo "background=$BACKGROUND" >> "$GITHUB_OUTPUT"
           echo "popup=$POPUP"         >> "$GITHUB_OUTPUT"
- 
+
       # manifest.json が変更された場合のみコメント
       - name: Comment – manifest changed
         if: steps.changes.outputs.manifest == 'true'
@@ -60,14 +62,14 @@ jobs:
               "- [ ] アイコンファイル（16/48/128px）が揃っているか",
               "- [ ] `SECURITY.md` の権限説明と整合が取れているか",
             ].join("\n");
- 
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
               body,
             });
- 
+
       # background.js が変更された場合のみコメント
       - name: Comment – background changed
         if: steps.changes.outputs.background == 'true'
@@ -92,14 +94,14 @@ jobs:
               "- [ ] アニメーションGIF が変換されずそのまま保存される",
               "- [ ] SVG 画像が変換されずそのまま保存される",
             ].join("\n");
- 
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
               body,
             });
- 
+
       # docs/popup.html または docs/popup.js が変更された場合のみコメント
       - name: Comment – popup changed
         if: steps.changes.outputs.popup == 'true'
@@ -117,7 +119,7 @@ jobs:
               "- [ ] 「GitHub」リンクが正しく開く",
               "- [ ] バージョン番号が正しく表示される",
             ].join("\n");
- 
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
