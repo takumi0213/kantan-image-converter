@@ -13,14 +13,26 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
+ 
 "use strict";
-
+ 
 document.getElementById("demoLink").addEventListener("click", (e) => {
   e.preventDefault();
   chrome.tabs.create({ url: chrome.runtime.getURL("docs/demo.html") });
   window.close();
 });
-
+ 
+document.getElementById("websiteLink").addEventListener("click", (e) => {
+  e.preventDefault();
+  chrome.tabs.create({ url: "https://takumi0213.github.io/kantan-image-converter/" });
+  window.close();
+});
+ 
+document.getElementById("githubLink").addEventListener("click", (e) => {
+  e.preventDefault();
+  chrome.tabs.create({ url: "https://github.com/takumi0213/kantan-image-converter" });
+  window.close();
+});
+ 
 const manifest = chrome.runtime.getManifest();
 document.getElementById("version").textContent = `v${manifest.version}`;
