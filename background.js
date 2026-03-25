@@ -159,7 +159,7 @@ async function handleImageSave(info, tab, formatKey) {
   if (/^(chrome|edge|about|devtools)/i.test(tabUrl)) {
     try {
       await downloadOriginal(srcUrl, filename);
-    } catch (dlErr) {
+    } catch (_dlErr) {
       reportError("画像の保存に失敗しました。");
     }
     return;
@@ -622,6 +622,7 @@ function isAllowedScheme(srcUrl) {
  * エラーを報告する（バッジを一時的に赤化）。
  * @param {string} message
  */
+// eslint-disable-next-line no-redeclare
 function reportError(message) {
   console.error("[かんたん画像変換]", message);
 
