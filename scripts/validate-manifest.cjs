@@ -54,10 +54,11 @@ check("action.default_popup が存在する",
 const iconSizes = ["16", "48", "128"];
 for (const size of iconSizes) {
   const iconPath = manifest.icons?.[size];
-  check(`icons["${size}"] が定義されている`, typeof iconPath === "string");
-  if (typeof iconPath === "string") {
+  check(`icons["${size}"] が定義されている`, typeof iconPath === "string" && iconPath.length > 0);
+  if (typeof iconPath === "string" && iconPath.length > 0) {
     const abs = path.resolve(ROOT, iconPath);
-    check(`icons["${size}"] ファイルが存在する (${iconPath})`, fs.existsSync(abs));
+    const isFile = (() => { try { return fs.statSync(abs).isFile(); } catch { return false; } })();
+    check(`icons["${size}"] ファイルが存在する (${iconPath})`, isFile);
   }
 }
 
