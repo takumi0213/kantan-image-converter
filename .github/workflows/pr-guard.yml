@@ -1,0 +1,96 @@
+name: PR Guard
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "manifest.json"
+      - "background.js"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  guard:
+    name: Post Review Checklist
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed files
+        id: changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          CHANGED=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" 2>/dev/null || git diff --name-only HEAD~1 HEAD)
+
+          MANIFEST=false
+          BACKGROUND=false
+
+          echo "$CHANGED" | grep -q "^manifest\.json$"    && MANIFEST=true   || true
+          echo "$CHANGED" | grep -q "^background\.js$"    && BACKGROUND=true || true
+
+          echo "manifest=$MANIFEST"   >> "$GITHUB_OUTPUT"
+          echo "background=$BACKGROUND" >> "$GITHUB_OUTPUT"
+
+      # manifest.json が変更された場合のみコメント
+      - name: Comment – manifest changed
+        if: steps.changes.outputs.manifest == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = [
+              "## 📋 manifest.json 変更チェックリスト",
+              "",
+              "manifest.json が変更されています。以下を確認してください。",
+              "",
+              "- [ ] 追加・変更した権限は最小限か（`host_permissions` を使っていないか）",
+              "- [ ] `background.service_worker` の参照先ファイルが存在するか",
+              "- [ ] `action.default_popup` の参照先ファイルが存在するか",
+              "- [ ] アイコンファイル（16/48/128px）が揃っているか",
+              "- [ ] `SECURITY.md` の権限説明と整合が取れているか",
+            ].join("\n");
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+
+      # background.js が変更された場合のみコメント
+      - name: Comment – background changed
+        if: steps.changes.outputs.background == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = [
+              "## 🔍 background.js 変更チェックリスト",
+              "",
+              "background.js が変更されています。通常のWebページで以下を手動確認してください。",
+              "",
+              "**変換・保存**",
+              "- [ ] PNG として保存が正常に動作する",
+              "- [ ] JPG として保存が正常に動作する",
+              "- [ ] WebP として保存が正常に動作する",
+              "",
+              "**フォールバック**",
+              "- [ ] `chrome://` 等の制限ページで元画像がダウンロードされる（エラーなし）",
+              "- [ ] CORS制限がある画像でフォールバックが動作する",
+              "",
+              "**特殊ケース**",
+              "- [ ] アニメーションGIF が変換されずそのまま保存される",
+              "- [ ] SVG 画像が変換されずそのまま保存される",
+            ].join("\n");
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
