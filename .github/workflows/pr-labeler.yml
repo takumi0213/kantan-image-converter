@@ -2,7 +2,7 @@ name: PR Labeler
 
 on:
   pull_request_target:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, ready_for_review]
 
 # forkからのPRでもラベル付与できるよう pull_request_target + 最小権限で構成
 permissions:
