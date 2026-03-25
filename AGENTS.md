@@ -31,6 +31,7 @@ kantan-image-converter/
 │       ├── pr-guard.yml
 │       ├── pr-labeler.yml
 │       ├── release.yml
+│       ├── stale.yml
 │       └── update-lockfile.yml
 ├── manifest.json        # 拡張機能マニフェスト (Manifest V3)
 ├── background.js        # Service Worker（メニュー・ダウンロード管理）
