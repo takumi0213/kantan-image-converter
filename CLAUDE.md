@@ -131,8 +131,8 @@ Chrome API に依存する関数（`handleImageSave` 等）は手動テスト対
  
 | ワークフロー | トリガー | 内容 |
 | --- | --- | --- |
-| `ci.yml` | push / PR | lint・ユニットテスト・manifest検証 |
-| `codeql.yml` | push / PR / 毎週土曜 | CodeQL 静的解析（actions・JS・Python） |
+| `ci.yml` | main push / PR | lint・ユニットテスト・manifest検証 |
+| `codeql.yml` | main push / main PR / 毎週土曜 | CodeQL 静的解析（actions・JS・Python） |
 | `release.yml` | タグ push | 配布ZIP生成・GitHub Attestation・Release作成 |
 | `claude.yml` | Issue/PR コメント (`@claude`) | Claude Code による自動対応 |
 | `claude-code-review.yml` | PR open/update | Claude による自動コードレビュー |
