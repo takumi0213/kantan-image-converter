@@ -3,7 +3,7 @@ name: PR Guard
 on:
   pull_request:
     branches: [main]
-    types: [opened, ready_for_review, reopened]
+    types: [opened, ready_for_review]
     paths:
       - "manifest.json"
       - "background.js"
@@ -19,6 +19,7 @@ jobs:
     name: Post Review Checklist
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
+    continue-on-error: true
 
     steps:
       - uses: actions/checkout@v4
@@ -37,13 +38,13 @@ jobs:
           BACKGROUND=false
           POPUP=false
 
-          echo "$CHANGED" | grep -q "^manifest\.json$"   && MANIFEST=true    || true
-          echo "$CHANGED" | grep -q "^background\.js$"   && BACKGROUND=true  || true
-          echo "$CHANGED" | grep -qE "^docs/popup\.(html|js)$" && POPUP=true || true
+          echo "$CHANGED" | grep -q "^manifest\.json$"        && MANIFEST=true   || true
+          echo "$CHANGED" | grep -q "^background\.js$"        && BACKGROUND=true || true
+          echo "$CHANGED" | grep -qE "^docs/popup\.(html|js)$" && POPUP=true     || true
 
-          echo "manifest=$MANIFEST"   >> "$GITHUB_OUTPUT"
+          echo "manifest=$MANIFEST"     >> "$GITHUB_OUTPUT"
           echo "background=$BACKGROUND" >> "$GITHUB_OUTPUT"
-          echo "popup=$POPUP"         >> "$GITHUB_OUTPUT"
+          echo "popup=$POPUP"           >> "$GITHUB_OUTPUT"
 
       # manifest.json が変更された場合のみコメント
       - name: Comment – manifest changed
