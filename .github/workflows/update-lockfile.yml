@@ -1,0 +1,43 @@
+name: Update package-lock.json
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "package.json"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-lockfile:
+    name: Regenerate package-lock.json
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Regenerate package-lock.json
+        run: npm install --ignore-scripts
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: chore/update-lockfile
+          commit-message: "chore: update package-lock.json"
+          title: "chore: package-lock.json を更新"
+          body: |
+            `package.json` の変更を検知して `package-lock.json` を自動更新しました。
+
+            - トリガー: `package.json` への push または手動実行
+            - 変更がない場合はこの PR は作成されません
+
+            マージ前に CI が通ることを確認してください。
+          labels: ci
+          delete-branch: true
