@@ -142,7 +142,7 @@ Chrome API に依存する関数（`handleImageSave` 等）は手動テスト対
 | `stale.yml` | 毎日 / 手動 | 60日放置の Issue を stale 化、7日後にクローズ |
 | `pages.yml` | website/ push | GitHub Pages デプロイ |
  
-Dependabot（`.github/dependabot.yml`）は GitHub Actions と npm の2エコシステムを週次で監視し、依存バージョンの更新 PR を自動作成する。
+Dependabot（`.github/dependabot.yml`）は GitHub Actions（週次）と npm（毎日）の2エコシステムを監視し、依存バージョンの更新 PR を自動作成する。
  
 ## ライセンス
  
