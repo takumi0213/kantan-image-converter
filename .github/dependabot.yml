@@ -11,3 +11,16 @@ updates:
       interval: "weekly"
     assignees:
       - "takumi0213"
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    assignees:
+      - "takumi0213"
+    allow:
+      - dependency-type: "development"
+    groups:
+      dev-dependencies:
+        patterns:
+          - "*"

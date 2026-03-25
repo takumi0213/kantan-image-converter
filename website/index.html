@@ -1088,7 +1088,7 @@
 <section id="spec">
   <div class="container">
     <h2>技術仕様</h2>
-    <p class="section-lead">シンプルな構成で、外部依存ゼロのバニラJavaScriptで実装されています。</p>
+    <p class="section-lead">シンプルな構成で、拡張機能本体は外部依存ゼロのバニラJavaScriptで実装されています。</p>
 
     <div class="spec-grid">
       <div class="spec-block">
@@ -1124,7 +1124,7 @@
         <div class="spec-label">アーキテクチャ</div>
         <div class="spec-body">
           メイン処理は Service Worker（<code>background.js</code>）に集約したシンプル構成です（拡張機能のポップアップや <code>docs/</code> 配下のデモUIなどの画面は別HTMLとして実装）。
-          外部ライブラリ・npmパッケージ不使用。Manifest V3 準拠。
+          拡張機能本体は外部ライブラリ不使用。Manifest V3 準拠。
         </div>
       </div>
       <div class="spec-block">
@@ -1132,6 +1132,12 @@
         <div class="spec-body">
           <a href="https://github.com/takumi0213/kantan-image-converter" style="color:var(--blue)">GitHub で公開</a>しています。
           GNU GPL v3.0 のもとで自由に使用・変更・再配布できます。派生物を配布する場合は同じく GPL v3.0 でのソースコード公開が必要です。
+        </div>
+      </div>
+      <div class="spec-block">
+        <div class="spec-label">品質保証</div>
+        <div class="spec-body">
+          GitHub Actions による CI を導入しています。main への push およびすべての PR のたびに ESLint による静的解析、ユニットテスト（Node.js 単体）、<code>manifest.json</code> の自動検証が実行されます。また CodeQL による静的セキュリティ解析も main への push・main 向け PR および週次スケジュールで実行されます。
         </div>
       </div>
     </div>

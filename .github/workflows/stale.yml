@@ -1,0 +1,39 @@
+name: Stale
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    name: Mark and Close Stale Issues
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/stale@v9
+        with:
+          # Issue: 60日反応なし → stale、さらに7日後クローズ
+          days-before-stale: 60
+          days-before-close: 7
+
+          # PR: staleにしない（作業中のPRを誤クローズしない）
+          days-before-pr-stale: -1
+          days-before-pr-close: -1
+
+          stale-issue-label: stale
+          stale-issue-message: >
+            このIssueは60日間更新がないため、staleとしてマークされました。
+            7日以内にコメントがない場合は自動的にクローズされます。
+            引き続き対応が必要な場合はコメントを追加してください。
+
+          close-issue-message: >
+            長期間更新がなかったためクローズしました。
+            引き続き問題が発生する場合は新しいIssueを作成してください。
+
+          # bug ラベルのIssueは放置しない
+          exempt-issue-labels: bug
