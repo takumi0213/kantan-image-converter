@@ -148,7 +148,6 @@ jobs:
               "- [ ] ブラウザで直接開きレイアウト崩れがない",
               "- [ ] モバイル幅（680px以下）でレイアウト崩れがない",
               "- [ ] ブラウザのタブに favicon が表示される",
-              "- [ ] OGP 情報（タイトル・説明・画像）が `website/index.html` の設定通りに表示される（デプロイ後に ogp.me 等の OGP デバッグツールで確認）",
             ].join("\n");
  
             await github.rest.issues.createComment({
