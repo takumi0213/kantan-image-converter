@@ -23,6 +23,8 @@ kantan-image-converter/
 │   ├── labeler.yml
 │   ├── pull_request_template.md
 │   └── workflows/
+│       ├── assign-issue.yml
+│       ├── assign-pr.yml
 │       ├── ci.yml
 │       ├── claude.yml
 │       ├── claude-code-review.yml
