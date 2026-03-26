@@ -105,8 +105,8 @@ npm run test
 
 # manifest.json 検証
 npm run validate
- 
-# アコン生成
+
+# アイコン生成
 python tools/generate_icons.py
 ```
 
