@@ -123,7 +123,9 @@ kantan-image-converter/
 │   ├── popup.js         # ポップアップロジック
 │   └── demo.html        # デモ・使い方ガイド
 ├── website/
-│   └── index.html       # 紹介ページ（GitHub Pages で公開）
+│   ├── index.html       # 紹介ページ（GitHub Pages で公開）
+│   ├── favicon.ico      # サイト用ファビコン
+│   └── ogp.png          # OGP用画像（SNS共有カード）
 ├── tools/
 │   └── generate_icons.py  # アイコン生成スクリプト（開発用）
 ├── tests/
