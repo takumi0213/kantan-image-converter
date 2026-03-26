@@ -146,7 +146,7 @@ async function handleImageSave(info, tab, formatKey) {
 
   // URLスキーム検証
   if (!isAllowedScheme(srcUrl)) {
-    reportError("このURLスキームはサポートされていません。");
+    showError("このURLスキームはサポートされていません。");
     return;
   }
 
@@ -159,8 +159,8 @@ async function handleImageSave(info, tab, formatKey) {
   if (/^(chrome|edge|about|devtools)/i.test(tabUrl)) {
     try {
       await downloadOriginal(srcUrl, filename);
-    } catch (dlErr) {
-      reportError("画像の保存に失敗しました。");
+    } catch {
+      showError("画像の保存に失敗しました。");
     }
     return;
   }
@@ -196,7 +196,7 @@ async function handleImageSave(info, tab, formatKey) {
       await downloadOriginal(srcUrl, filename);
     } catch (dlErr) {
       console.error("[かんたん画像変換] Fallback download also failed:", dlErr);
-      reportError("画像の保存に失敗しました。");
+      showError("画像の保存に失敗しました。");
     }
   }
 }
@@ -439,7 +439,7 @@ async function downloadFile(dataUrl, filename) {
 async function downloadOriginal(srcUrl, filename) {
   // blob: は chrome.downloads.download で直接使えない
   if (srcUrl.startsWith("blob:")) {
-    reportError("この画像は直接ダウンロードできません。");
+    showError("この画像は直接ダウンロードできません。");
     return;
   }
 
@@ -622,7 +622,7 @@ function isAllowedScheme(srcUrl) {
  * エラーを報告する（バッジを一時的に赤化）。
  * @param {string} message
  */
-function reportError(message) {
+function showError(message) {
   console.error("[かんたん画像変換]", message);
 
   chrome.action.setBadgeBackgroundColor({ color: "#E24B4A" });
