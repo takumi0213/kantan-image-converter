@@ -1,3 +1,20 @@
+<!--
+  かんたん画像変換 - Chrome extension to convert and save web images
+  Copyright (C) 2026 takumi0213
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -5,13 +22,13 @@
   <title>かんたん画像変換</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
- 
+
     body {
       font-family: "Segoe UI", "Hiragino Sans", "Meiryo", sans-serif;
       width: 240px;
       color: #212529;
     }
- 
+
     .header {
       display: flex;
       align-items: center;
@@ -19,24 +36,24 @@
       padding: 14px 16px 12px;
       border-bottom: 1px solid #e9ecef;
     }
- 
+
     .header img {
       width: 24px;
       height: 24px;
     }
- 
+
     .header span {
       font-size: 14px;
       font-weight: 700;
     }
- 
+
     .desc {
       padding: 10px 16px;
       font-size: 12px;
       color: #6c757d;
       line-height: 1.6;
     }
- 
+
     .menu a {
       display: flex;
       align-items: center;
@@ -48,18 +65,18 @@
       border-top: 1px solid #e9ecef;
       transition: background 0.1s;
     }
- 
+
     .menu a:hover {
       background: #f1f3f5;
     }
- 
+
     .menu a .icon {
       flex-shrink: 0;
       width: 14px;
       height: 14px;
       color: #868e96;
     }
- 
+
     .version {
       padding: 8px 16px;
       font-size: 11px;
