@@ -22,7 +22,7 @@ jobs:
     #   github.event.pull_request.user.login == 'external-contributor' ||
     #   github.event.pull_request.user.login == 'new-developer' ||
     #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
-    if: github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false
+    if: !endsWith(github.actor, '[bot]') && !github.event.pull_request.draft
     timeout-minutes: 15
 
     runs-on: ubuntu-latest
