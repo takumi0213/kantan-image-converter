@@ -44,7 +44,9 @@ kantan-image-converter/
 │   ├── popup.js
 │   └── demo.html
 ├── website/
-│   └── index.html       # 紹介ページ（GitHub Pages で公開）
+│   ├── index.html       # 紹介ページ（GitHub Pages で公開）
+│   ├── favicon.ico      # サイト用ファビコン
+│   └── ogp.png          # OGP用画像（SNS共有カード）
 ├── tools/
 │   └── generate_icons.py
 ├── tests/
