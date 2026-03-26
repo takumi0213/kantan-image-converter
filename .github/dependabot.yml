@@ -8,7 +8,9 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      # Node.js 24移行対応のため一時的にdailyへ変更
+      # interval: "weekly"
+      interval: "daily"
     assignees:
       - "takumi0213"
 
