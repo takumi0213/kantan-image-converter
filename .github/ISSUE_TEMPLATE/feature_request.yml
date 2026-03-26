@@ -1,6 +1,7 @@
 name: 機能提案
 description: 改善案や新しいアイデアを提案する
 labels: ["enhancement"]
+assignees: ["takumi0213"]
 body:
   - type: markdown
     attributes:
