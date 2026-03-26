@@ -150,6 +150,8 @@ Chrome API に依存する関数（`handleImageSave` 等）は手動テスト対
 | `pr-labeler.yml` | PR open/update | 変更ファイルに応じたラベル自動付与 |
 | `pr-guard.yml` | PR (manifest/background/popup変更時) | 手動確認チェックリストをコメント投稿 |
 | `update-lockfile.yml` | package.json push / 手動 | package-lock.json 更新 PR を自動作成 |
+| `assign-issue.yml` | Issue open | Issue作成者を Assignee に自動追加（bot除外） |
+| `assign-pr.yml` | PR open/reopened/ready_for_review | PR作成者を Assignee に追加、非Draftは Reviewer も追加（bot除外・冪等） |
 | `stale.yml` | 毎日 / 手動 | 60日放置の Issue を stale 化、7日後にクローズ |
 | `pages.yml` | website/ push | GitHub Pages デプロイ |
 
@@ -172,4 +174,3 @@ GNU General Public License v3.0
 - **ブランチ名**（例: `fix/menu-duplicate`, `feat/firefox-support`, `docs/update-readme`）
 - **PRタイトル**（日本語で記載すること）
 - **PR説明**（`.github/pull_request_template.md` のテンプレートに沿って日本語で記載すること）
-- **コミットメッセージ**（英語・日本語どちらでも可。内容を簡潔に表すこと）
