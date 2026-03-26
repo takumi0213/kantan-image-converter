@@ -1,5 +1,5 @@
 name: PR Guard
-
+ 
 on:
   pull_request:
     branches: [main]
@@ -9,18 +9,20 @@ on:
       - "background.js"
       - "docs/popup.html"
       - "docs/popup.js"
-
+      - "website/**"
+      - "icons/**"
+ 
 permissions:
   contents: read
   pull-requests: write
-
+ 
 jobs:
   guard:
     name: Post Review Checklist
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     continue-on-error: true
-
+ 
     steps:
       - name: Detect changed files
         id: changes
@@ -36,15 +38,19 @@ jobs:
               }
             );
             const names = files.map(f => f.filename);
-
+ 
             const manifest   = names.includes("manifest.json");
             const background = names.includes("background.js");
             const popup      = names.some(n => n === "docs/popup.html" || n === "docs/popup.js");
-
+            const website    = names.some(n => n.startsWith("website/"));
+            const icons      = names.some(n => n.startsWith("icons/"));
+ 
             core.setOutput("manifest",   String(manifest));
             core.setOutput("background", String(background));
             core.setOutput("popup",      String(popup));
-
+            core.setOutput("website",    String(website));
+            core.setOutput("icons",      String(icons));
+ 
       # manifest.json が変更された場合のみコメント
       - name: Comment – manifest changed
         if: steps.changes.outputs.manifest == 'true'
@@ -57,19 +63,18 @@ jobs:
               "manifest.json が変更されています。以下を確認してください。",
               "",
               "- [ ] 追加・変更した権限は最小限か（`host_permissions` を使っていないか）",
-              "- [ ] `background.service_worker` の参照先ファイルが存在するか",
-              "- [ ] `action.default_popup` の参照先ファイルが存在するか",
+              "- [ ] 参照先ファイル（`background.service_worker` / `action.default_popup` / アイコン）が存在するか",
               "- [ ] アイコンファイル（16/48/128px）が揃っているか",
               "- [ ] `SECURITY.md` の権限説明と整合が取れているか",
             ].join("\n");
-
+ 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
               body,
             });
-
+ 
       # background.js が変更された場合のみコメント
       - name: Comment – background changed
         if: steps.changes.outputs.background == 'true'
@@ -82,26 +87,28 @@ jobs:
               "background.js が変更されています。通常のWebページで以下を手動確認してください。",
               "",
               "**変換・保存**",
-              "- [ ] PNG として保存が正常に動作する",
-              "- [ ] JPG として保存が正常に動作する",
-              "- [ ] WebP として保存が正常に動作する",
+              "- [ ] PNG・JPG・WebP の全フォーマットで変換・保存が正常に動作する",
+              "- [ ] 保存ダイアログ（名前を付けて保存）が表示される",
+              "- [ ] 透過PNG → JPG 変換時、透過部分が白背景で描画される",
               "",
               "**フォールバック**",
               "- [ ] `chrome://` 等の制限ページで元画像がダウンロードされる（エラーなし）",
               "- [ ] CORS制限がある画像でフォールバックが動作する",
               "",
               "**特殊ケース**",
-              "- [ ] アニメーションGIF が変換されずそのまま保存される",
-              "- [ ] SVG 画像が変換されずそのまま保存される",
+              "- [ ] アニメーションGIF / SVG がそのまま保存される",
+              "",
+              "**エラー**",
+              "- [ ] すべての変換が失敗した場合、バッジアイコンが赤くなる（Service Worker DevTools でエラーを確認）",
             ].join("\n");
-
+ 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
               body,
             });
-
+ 
       # docs/popup.html または docs/popup.js が変更された場合のみコメント
       - name: Comment – popup changed
         if: steps.changes.outputs.popup == 'true'
@@ -114,12 +121,59 @@ jobs:
               "docs/popup.html または docs/popup.js が変更されています。拡張機能を読み込んで以下を手動確認してください。",
               "",
               "- [ ] ポップアップが正しく表示される",
-              "- [ ] 「デモ・使い方ガイド」リンクが正しく開く",
-              "- [ ] 「紹介ページ」リンクが正しく開く",
-              "- [ ] 「GitHub」リンクが正しく開く",
-              "- [ ] バージョン番号が正しく表示される",
+              "- [ ] 「デモ・使い方ガイド」リンクが意図したページに開く",
+              "- [ ] 「紹介ページ」リンクが意図したページに開く",
+              "- [ ] 「GitHub」リンクが意図したページに開く",
+              "- [ ] バージョン番号が `manifest.json` のバージョンと一致している",
             ].join("\n");
-
+ 
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+ 
+      # website/ が変更された場合のみコメント
+      - name: Comment – website changed
+        if: steps.changes.outputs.website == 'true'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const body = [
+              "## 🌐 紹介ページ変更チェックリスト",
+              "",
+              "website/ が変更されています。以下を手動確認してください。",
+              "",
+              "- [ ] ブラウザで直接開きレイアウト崩れがない",
+              "- [ ] モバイル幅（680px以下）でレイアウト崩れがない",
+              "- [ ] ブラウザのタブに favicon が表示される",
+              "- [ ] OGP 情報（タイトル・説明・画像）が `website/index.html` の設定通りに表示される（デプロイ後に ogp.me 等の OGP デバッグツールで確認）",
+            ].join("\n");
+ 
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+ 
+      # icons/ が変更された場合のみコメント
+      - name: Comment – icons changed
+        if: steps.changes.outputs.icons == 'true'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const body = [
+              "## 🎨 アイコン変更チェックリスト",
+              "",
+              "icons/ が変更されています。拡張機能を読み込んで以下を手動確認してください。",
+              "",
+              "- [ ] ツールバーで 16px アイコンが正しく表示される",
+              "- [ ] 拡張機能管理画面で 48px アイコンが正しく表示される",
+              "- [ ] 128px アイコンが正しく表示される",
+            ].join("\n");
+ 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
