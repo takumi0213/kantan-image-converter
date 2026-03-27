@@ -1,0 +1,354 @@
+<!--
+  かんたん画像変換 - Chrome extension to convert and save web images
+  Copyright (C) 2026 takumi0213
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>プライバシーポリシー — かんたん画像変換</title>
+  <meta name="description" content="かんたん画像変換のプライバシーポリシー。本拡張機能はユーザーデータを一切収集しません。">
+  <!-- Favicon -->
+  <link rel="icon" href="./favicon.ico">
+  <!-- Canonical -->
+  <link rel="canonical" href="https://takumi0213.github.io/kantan-image-converter/privacy.html">
+  <!-- OGP -->
+  <meta property="og:title" content="プライバシーポリシー — かんたん画像変換">
+  <meta property="og:description" content="かんたん画像変換のプライバシーポリシー。本拡張機能はユーザーデータを一切収集しません。">
+  <meta property="og:image" content="https://takumi0213.github.io/kantan-image-converter/ogp.png">
+  <meta property="og:url" content="https://takumi0213.github.io/kantan-image-converter/privacy.html">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ja_JP">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="プライバシーポリシー — かんたん画像変換">
+  <meta name="twitter:description" content="かんたん画像変換のプライバシーポリシー。本拡張機能はユーザーデータを一切収集しません。">
+  <meta name="twitter:image" content="https://takumi0213.github.io/kantan-image-converter/ogp.png">
+  <!-- Theme Color -->
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./common.css">
+  <script src="./components.js" defer></script>
+  <style>
+
+    /* ========== PAGE HEADER ========== */
+    .page-header {
+      padding: 64px 0 48px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-light);
+      margin-bottom: 20px;
+    }
+
+    .breadcrumb a {
+      color: var(--text-mid);
+      text-decoration: none;
+      transition: color .15s;
+    }
+
+    .breadcrumb a:hover { color: var(--blue); }
+
+    .breadcrumb-sep {
+      font-size: 11px;
+    }
+
+    h1 {
+      font-size: clamp(24px, 3.5vw, 32px);
+      font-weight: 700;
+      letter-spacing: -.03em;
+      line-height: 1.3;
+      margin-bottom: 12px;
+    }
+
+    .page-header-meta {
+      font-size: 13px;
+      color: var(--text-light);
+    }
+
+    /* ========== CONTENT ========== */
+    .content {
+      padding: 56px 0 80px;
+    }
+
+    .policy-section {
+      margin-bottom: 48px;
+    }
+
+    .policy-section:last-child {
+      margin-bottom: 0;
+    }
+
+    h2 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .policy-section p {
+      font-size: 15px;
+      color: var(--text-mid);
+      line-height: 1.85;
+      margin-bottom: 12px;
+    }
+
+    .policy-section p:last-child {
+      margin-bottom: 0;
+    }
+
+    .policy-section ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .policy-section ul li {
+      font-size: 15px;
+      color: var(--text-mid);
+      padding-left: 16px;
+      position: relative;
+      line-height: 1.8;
+    }
+
+    .policy-section ul li::before {
+      content: "·";
+      position: absolute;
+      left: 0;
+      font-weight: 700;
+      color: var(--blue);
+    }
+
+    /* ========== HIGHLIGHT BOX ========== */
+    .highlight-box {
+      background: var(--blue-pale);
+      border: 1px solid var(--blue-light);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      margin-bottom: 48px;
+    }
+
+    .highlight-box-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--blue);
+      margin-bottom: 10px;
+    }
+
+    .highlight-box p {
+      font-size: 15px;
+      color: #1e40af;
+      line-height: 1.8;
+      margin-bottom: 8px;
+    }
+
+    .highlight-box p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* ========== PERMISSION TABLE ========== */
+    .permission-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 4px;
+      font-size: 14px;
+    }
+
+    .permission-table th {
+      text-align: left;
+      padding: 10px 14px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--text);
+    }
+
+    .permission-table td {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      color: var(--text-mid);
+      line-height: 1.7;
+    }
+
+    .permission-table td code {
+      font-family: "DM Mono", monospace;
+      font-size: 12px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      padding: 1px 6px;
+      border-radius: 4px;
+      color: var(--text);
+    }
+
+    /* ========== レスポンシブ ========== */
+    @media (max-width: 680px) {
+      .page-header { padding: 48px 0 36px; }
+      .content { padding: 40px 0 60px; }
+      .permission-table { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav data-page="sub"></nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="./index.html">かんたん画像変換</a>
+      <span class="breadcrumb-sep">›</span>
+      <span>プライバシーポリシー</span>
+    </div>
+    <h1>プライバシーポリシー</h1>
+    <p class="page-header-meta">最終更新: 2026年3月</p>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+  <div class="container">
+
+    <!-- サマリー強調ボックス -->
+    <div class="highlight-box">
+      <div class="highlight-box-title">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <circle cx="8" cy="8" r="7" stroke="#2563eb" stroke-width="1.5"/>
+          <path d="M5 8l2 2 4-4" stroke="#2563eb" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        要約
+      </div>
+      <p>本拡張機能は、ユーザーのデータを一切収集・送信しません。</p>
+      <p>画像の変換処理はすべてブラウザ内で完結し、外部サーバーへの通信は行いません。</p>
+    </div>
+
+    <div class="policy-section">
+      <h2>収集する情報</h2>
+      <p>
+        かんたん画像変換は、いかなる個人情報・使用状況・画像データも収集しません。
+        分析ツール、トラッキング、クラッシュレポートなどの仕組みは一切導入していません。
+      </p>
+    </div>
+
+    <div class="policy-section">
+      <h2>外部通信</h2>
+      <p>
+        本拡張機能は外部サーバーと通信しません。画像の変換処理はすべてブラウザ内（OffscreenCanvas）で完結します。
+        変換対象の画像データが拡張機能の外部に送信されることは一切ありません。
+      </p>
+      <p>
+        なお、変換処理においてブラウザは変換対象の画像自体をウェブサイトから読み込みますが、これはブラウザの通常動作であり、本拡張機能が制御するものではありません。
+      </p>
+    </div>
+
+    <div class="policy-section">
+      <h2>使用する権限</h2>
+      <p>本拡張機能が要求する権限は以下の4つのみです。いずれもユーザーが操作したときのみ機能します。</p>
+      <table class="permission-table">
+        <thead>
+          <tr>
+            <th>権限</th>
+            <th>用途</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>contextMenus</code></td>
+            <td>右クリックメニューへの項目追加</td>
+          </tr>
+          <tr>
+            <td><code>downloads</code></td>
+            <td>変換後の画像ファイルのダウンロード</td>
+          </tr>
+          <tr>
+            <td><code>activeTab</code></td>
+            <td>右クリックしたタブの画像へのアクセス（ユーザー操作時のみ）</td>
+          </tr>
+          <tr>
+            <td><code>scripting</code></td>
+            <td>変換処理スクリプトの動的注入</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="margin-top: 14px;">
+        <code style="font-family:'DM Mono',monospace;font-size:12px;background:var(--bg-subtle);border:1px solid var(--border);padding:1px 6px;border-radius:4px;">host_permissions</code>
+        は使用しておらず、特定のウェブサイトへの常時アクセス権は持ちません。
+      </p>
+    </div>
+
+    <div class="policy-section">
+      <h2>第三者への情報提供</h2>
+      <p>
+        収集するデータが存在しないため、第三者に提供する情報はありません。
+        広告ネットワーク、アナリティクスサービス、その他いかなる第三者とも情報を共有しません。
+      </p>
+    </div>
+
+    <div class="policy-section">
+      <h2>オープンソース</h2>
+      <p>
+        本拡張機能のソースコードは
+        <a href="https://github.com/takumi0213/kantan-image-converter" style="color:var(--blue)">GitHub で公開</a>
+        しています（GNU GPL v3.0）。
+        上記のプライバシーに関する記述は、公開されているソースコードで直接確認できます。
+      </p>
+    </div>
+
+    <div class="policy-section">
+      <h2>ポリシーの変更</h2>
+      <p>
+        本ポリシーを変更する場合は、このページを更新します。
+        重要な変更がある場合は
+        <a href="https://github.com/takumi0213/kantan-image-converter/releases" style="color:var(--blue)">リリースノート</a>
+        でもお知らせします。
+      </p>
+    </div>
+
+    <div class="policy-section">
+      <h2>お問い合わせ</h2>
+      <p>
+        本ポリシーに関するご質問は
+        <a href="https://github.com/takumi0213/kantan-image-converter/issues" style="color:var(--blue)">GitHub Issues</a>
+        からお寄せください。
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer></footer>
+
+</body>
+</html>
