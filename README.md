@@ -134,7 +134,8 @@ kantan-image-converter/
 ├── tests/
 │   └── background.test.js  # ユニットテスト（Node.js 単体で実行）
 ├── scripts/
-│   └── validate-manifest.cjs  # manifest.json 検証スクリプト
+│   ├── validate-manifest.cjs  # manifest.json 検証スクリプト
+│   └── build-dist.sh          # 配布用ZIP作成スクリプト
 ├── eslint.config.js     # ESLint 設定
 ├── package.json         # 開発用スクリプト・devDependencies 定義
 ├── package-lock.json    # npm 依存のロックファイル
