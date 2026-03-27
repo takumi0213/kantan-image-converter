@@ -33,9 +33,9 @@
     `.trim();
   }
 
-  /** ロゴのhref（トップページはページ内先頭、サブページはindex.htmlへ） */
+  /** ロゴのhref（サブページは prefix='./index.html'、トップページは prefix=''） */
   function buildLogoHref(prefix) {
-    return prefix ? './index.html' : '#';
+    return prefix || '#';
   }
 
   /** nav要素の中身を生成して挿入する */
