@@ -13,7 +13,7 @@ jobs:
     name: Add Assignee and Reviewer to PR
     runs-on: ubuntu-latest
     # botが作成したPRは除外
-    if: ${{ !endsWith(github.actor, '[bot]') }}
+    if: ${{ !endsWith(github.event.pull_request.user.login, '[bot]') }}
 
     steps:
       - name: Add PR creator as assignee
