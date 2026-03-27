@@ -28,21 +28,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Create distribution ZIP
-        run: |
-          DIST_DIR="kantan-image-converter"
-          mkdir -p "$DIST_DIR/icons" "$DIST_DIR/docs"
-
-          cp manifest.json "$DIST_DIR/"
-          cp background.js "$DIST_DIR/"
-          cp icons/icon16.png "$DIST_DIR/icons/"
-          cp icons/icon48.png "$DIST_DIR/icons/"
-          cp icons/icon128.png "$DIST_DIR/icons/"
-          cp docs/popup.html "$DIST_DIR/docs/"
-          cp docs/popup.js "$DIST_DIR/docs/"
-          cp docs/demo.html "$DIST_DIR/docs/"
-          cp LICENSE "$DIST_DIR/"
-
-          zip -r "kantan-image-converter-${GITHUB_REF_NAME}.zip" "$DIST_DIR"
+        run: bash scripts/build-dist.sh "${GITHUB_REF_NAME}"
 
       - name: Generate attestation
         uses: actions/attest-build-provenance@v4
@@ -90,21 +76,7 @@ jobs:
       - name: Create distribution ZIP
         env:
           VERSION: ${{ steps.version.outputs.version }}
-        run: |
-          DIST_DIR="kantan-image-converter"
-          mkdir -p "$DIST_DIR/icons" "$DIST_DIR/docs"
-
-          cp manifest.json "$DIST_DIR/"
-          cp background.js "$DIST_DIR/"
-          cp icons/icon16.png "$DIST_DIR/icons/"
-          cp icons/icon48.png "$DIST_DIR/icons/"
-          cp icons/icon128.png "$DIST_DIR/icons/"
-          cp docs/popup.html "$DIST_DIR/docs/"
-          cp docs/popup.js "$DIST_DIR/docs/"
-          cp docs/demo.html "$DIST_DIR/docs/"
-          cp LICENSE "$DIST_DIR/"
-
-          zip -r "kantan-image-converter-${VERSION}.zip" "$DIST_DIR"
+        run: bash scripts/build-dist.sh "${VERSION}"
 
       - name: Upload ZIP as artifact
         uses: actions/upload-artifact@v4
