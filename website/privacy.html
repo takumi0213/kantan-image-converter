@@ -200,7 +200,7 @@
       line-height: 1.7;
     }
 
-    .permission-table td code {
+    .inline-code {
       font-family: "DM Mono", monospace;
       font-size: 12px;
       background: var(--bg-subtle);
@@ -209,6 +209,16 @@
       border-radius: 4px;
       color: var(--text);
     }
+
+    .permission-table td code { /* テーブル内 code は .inline-code を継承 */ }
+
+    .policy-link {
+      color: var(--blue);
+      text-decoration: none;
+      transition: color .15s;
+    }
+
+    .policy-link:hover { color: var(--blue-dark); }
 
     /* ========== レスポンシブ ========== */
     @media (max-width: 680px) {
@@ -286,25 +296,25 @@
         </thead>
         <tbody>
           <tr>
-            <td><code>contextMenus</code></td>
+            <td><code class="inline-code">contextMenus</code></td>
             <td>右クリックメニューへの項目追加</td>
           </tr>
           <tr>
-            <td><code>downloads</code></td>
+            <td><code class="inline-code">downloads</code></td>
             <td>変換後の画像ファイルのダウンロード</td>
           </tr>
           <tr>
-            <td><code>activeTab</code></td>
+            <td><code class="inline-code">activeTab</code></td>
             <td>右クリックしたタブの画像へのアクセス（ユーザー操作時のみ）</td>
           </tr>
           <tr>
-            <td><code>scripting</code></td>
+            <td><code class="inline-code">scripting</code></td>
             <td>変換処理スクリプトの動的注入</td>
           </tr>
         </tbody>
       </table>
       <p style="margin-top: 14px;">
-        <code style="font-family:'DM Mono',monospace;font-size:12px;background:var(--bg-subtle);border:1px solid var(--border);padding:1px 6px;border-radius:4px;">host_permissions</code>
+        <code class="inline-code">host_permissions</code>
         は使用しておらず、特定のウェブサイトへの常時アクセス権は持ちません。
       </p>
     </div>
@@ -321,7 +331,7 @@
       <h2>オープンソース</h2>
       <p>
         本拡張機能のソースコードは
-        <a href="https://github.com/takumi0213/kantan-image-converter" style="color:var(--blue)">GitHub で公開</a>
+        <a href="https://github.com/takumi0213/kantan-image-converter" class="policy-link">GitHub で公開</a>
         しています（GNU GPL v3.0）。
         上記のプライバシーに関する記述は、公開されているソースコードで直接確認できます。
       </p>
@@ -332,7 +342,7 @@
       <p>
         本ポリシーを変更する場合は、このページを更新します。
         重要な変更がある場合は
-        <a href="https://github.com/takumi0213/kantan-image-converter/releases" style="color:var(--blue)">リリースノート</a>
+        <a href="https://github.com/takumi0213/kantan-image-converter/releases" class="policy-link">リリースノート</a>
         でもお知らせします。
       </p>
     </div>
@@ -341,7 +351,7 @@
       <h2>お問い合わせ</h2>
       <p>
         本ポリシーに関するご質問は
-        <a href="https://github.com/takumi0213/kantan-image-converter/issues" style="color:var(--blue)">GitHub Issues</a>
+        <a href="https://github.com/takumi0213/kantan-image-converter/issues" class="policy-link">GitHub Issues</a>
         からお寄せください。
       </p>
     </div>
