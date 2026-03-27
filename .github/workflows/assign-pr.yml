@@ -21,11 +21,13 @@ jobs:
         uses: actions/github-script@v8
         with:
           script: |
+            // ready_for_review 等では actor がPR作成者とは限らないため、PR作成者を参照する
+            const creator = context.payload.pull_request.user.login;
             await github.rest.issues.addAssignees({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              assignees: [context.actor],
+              assignees: [creator],
             });
 
       - name: Add reviewer (non-draft only)
@@ -35,8 +37,11 @@ jobs:
         uses: actions/github-script@v8
         with:
           script: |
+            // ready_for_review 等では actor がPR作成者とは限らないため、PR作成者を参照する
+            const creator = context.payload.pull_request.user.login;
+
             // PR作成者と同一ユーザーへのReviewer追加はスキップ（GitHub APIの制約）
-            if (context.actor === 'takumi0213') {
+            if (creator === 'takumi0213') {
               core.info('PR creator is takumi0213, skipping reviewer assignment.');
               return;
             }
