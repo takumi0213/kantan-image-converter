@@ -4,15 +4,24 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'バージョン名（例: v1.2.0）。空の場合は manifest.json のバージョンを使用'
+        required: false
+        type: string
 
-permissions:
-  contents: write
-  id-token: write
-  attestations: write
+permissions: {}
 
 jobs:
+  # タグ push 時: ZIP生成 + Attestation + GitHub Release
   release:
+    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
 
     steps:
       - name: Checkout repository
@@ -23,7 +32,6 @@ jobs:
           DIST_DIR="kantan-image-converter"
           mkdir -p "$DIST_DIR/icons" "$DIST_DIR/docs"
 
-          # 拡張機能として必要なファイルのみをコピー
           cp manifest.json "$DIST_DIR/"
           cp background.js "$DIST_DIR/"
           cp icons/icon16.png "$DIST_DIR/icons/"
@@ -34,7 +42,6 @@ jobs:
           cp docs/demo.html "$DIST_DIR/docs/"
           cp LICENSE "$DIST_DIR/"
 
-          # ZIP作成
           zip -r "kantan-image-converter-${GITHUB_REF_NAME}.zip" "$DIST_DIR"
 
       - name: Generate attestation
@@ -47,3 +54,48 @@ jobs:
         with:
           files: kantan-image-converter-*.zip
           generate_release_notes: true
+
+  # 手動実行時: ZIP生成 + Actionsアーティファクトへアップロード（Attestationなし・Releaseなし）
+  build:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Resolve version
+        id: version
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="v$(node -p "require('./manifest.json').version")"
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Create distribution ZIP
+        run: |
+          DIST_DIR="kantan-image-converter"
+          mkdir -p "$DIST_DIR/icons" "$DIST_DIR/docs"
+
+          cp manifest.json "$DIST_DIR/"
+          cp background.js "$DIST_DIR/"
+          cp icons/icon16.png "$DIST_DIR/icons/"
+          cp icons/icon48.png "$DIST_DIR/icons/"
+          cp icons/icon128.png "$DIST_DIR/icons/"
+          cp docs/popup.html "$DIST_DIR/docs/"
+          cp docs/popup.js "$DIST_DIR/docs/"
+          cp docs/demo.html "$DIST_DIR/docs/"
+          cp LICENSE "$DIST_DIR/"
+
+          zip -r "kantan-image-converter-${{ steps.version.outputs.version }}.zip" "$DIST_DIR"
+
+      - name: Upload ZIP as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kantan-image-converter-${{ steps.version.outputs.version }}
+          path: kantan-image-converter-*.zip
+          retention-days: 30
