@@ -81,6 +81,11 @@ jobs:
             VERSION="${INPUT_VERSION}"
           else
             VERSION="v$(node -p "require('./manifest.json').version")"
+            # manifest 由来のバージョンも同形式で検証
+            if ! printf '%s\n' "${VERSION}" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+              echo "Error: manifest version is not in 'v1.2.3' format, got: ${VERSION}" >&2
+              exit 1
+            fi
           fi
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
