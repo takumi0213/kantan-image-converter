@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # build-dist.sh — 配布用ZIPを作成する共通スクリプト
 #
 # 使い方: scripts/build-dist.sh <version>
@@ -17,6 +17,7 @@ set -eu
 VERSION="${1:?Usage: build-dist.sh <version>}"
 
 DIST_DIR="kantan-image-converter"
+rm -rf "$DIST_DIR"
 mkdir -p "$DIST_DIR/icons" "$DIST_DIR/docs"
 
 cp manifest.json "$DIST_DIR/"
