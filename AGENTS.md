@@ -47,6 +47,9 @@ kantan-image-converter/
 │   └── demo.html
 ├── website/
 │   ├── index.html       # 紹介ページ（GitHub Pages で公開）
+│   ├── privacy.html     # プライバシーポリシーページ（GitHub Pages で公開）
+│   ├── components.js    # 共通ナビゲーション・フッターの動的挿入スクリプト
+│   ├── common.css       # 共通スタイルシート（変数・リセット・NAV・FOOTER）
 │   ├── favicon.ico      # サイト用ファビコン
 │   └── ogp.png          # OGP用画像（SNS共有カード）
 ├── tools/
