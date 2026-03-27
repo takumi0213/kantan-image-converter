@@ -1,36 +1,38 @@
 name: Update package-lock.json
- 
+
 on:
   push:
     branches: [main]
     paths:
       - "package.json"
   workflow_dispatch:
- 
+
 concurrency:
   group: update-lockfile
   cancel-in-progress: true
- 
+
 permissions:
   contents: write
   pull-requests: write
- 
+  issues: write
+
 jobs:
   update-lockfile:
     name: Regenerate package-lock.json
     runs-on: ubuntu-latest
- 
+
     steps:
       - uses: actions/checkout@v6
- 
+
       - uses: actions/setup-node@v6
         with:
           node-version: "24"
- 
+
       - name: Regenerate package-lock.json
         run: npm install --ignore-scripts
- 
+
       - name: Create Pull Request
+        id: cpr
         uses: peter-evans/create-pull-request@v8
         with:
           branch: chore/update-lockfile
@@ -38,10 +40,43 @@ jobs:
           title: "chore: package-lock.json を更新"
           body: |
             `package.json` の変更を検知して `package-lock.json` を自動更新しました。
- 
+
             - トリガー: `package.json` への push または手動実行
             - 変更がない場合はこの PR は作成されません
- 
+
             マージ前に CI が通ることを確認してください。
           labels: ci
           delete-branch: true
+
+      - name: Add assignee and reviewer
+        if: steps.cpr.outputs.pull-request-number != ''
+        continue-on-error: true
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const prNumber = parseInt('${{ steps.cpr.outputs.pull-request-number }}', 10);
+
+            // Assignee 追加
+            await github.rest.issues.addAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              assignees: ['takumi0213'],
+            });
+
+            // Reviewer 追加（事前チェックで重複を防ぐ）
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+
+            const existingReviewers = pr.requested_reviewers.map(r => r.login);
+            if (!existingReviewers.includes('takumi0213')) {
+              await github.rest.pulls.requestReviewers({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+                reviewers: ['takumi0213'],
+              });
+            }

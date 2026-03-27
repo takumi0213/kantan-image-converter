@@ -1,0 +1,67 @@
+name: Assign PR
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  assign:
+    name: Add Assignee and Reviewer to PR
+    runs-on: ubuntu-latest
+    # botが作成したPRは除外
+    if: ${{ !endsWith(github.event.pull_request.user.login, '[bot]') }}
+
+    steps:
+      - name: Add PR creator as assignee
+        continue-on-error: true
+        uses: actions/github-script@v8
+        with:
+          script: |
+            // ready_for_review 等では actor がPR作成者とは限らないため、PR作成者を参照する
+            const creator = context.payload.pull_request.user.login;
+            await github.rest.issues.addAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              assignees: [creator],
+            });
+
+      - name: Add reviewer (non-draft only)
+        # Draftでない場合のみ実行（opened/reopened はイベント時点のdraft状態を見る）
+        if: ${{ !github.event.pull_request.draft }}
+        continue-on-error: true
+        uses: actions/github-script@v8
+        with:
+          script: |
+            // ready_for_review 等では actor がPR作成者とは限らないため、PR作成者を参照する
+            const creator = context.payload.pull_request.user.login;
+
+            // PR作成者と同一ユーザーへのReviewer追加はスキップ（GitHub APIの制約）
+            if (creator === 'takumi0213') {
+              core.info('PR creator is takumi0213, skipping reviewer assignment.');
+              return;
+            }
+
+            // 既存のReviewerを確認して重複追加を防ぐ
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+
+            const existingReviewers = pr.requested_reviewers.map(r => r.login);
+            if (existingReviewers.includes('takumi0213')) {
+              core.info('takumi0213 is already a reviewer, skipping.');
+              return;
+            }
+
+            await github.rest.pulls.requestReviewers({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              reviewers: ['takumi0213'],
+            });

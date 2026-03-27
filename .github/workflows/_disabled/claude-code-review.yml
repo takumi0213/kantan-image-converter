@@ -1,7 +1,7 @@
 name: Claude Code Review
-
+ 
 on:
-  workflow_dispatch:
+  # workflow_dispatch:
   # pull_request:
     # branches: [main]
     # types: [opened, synchronize, ready_for_review, reopened]
@@ -11,11 +11,11 @@ on:
     #   - "src/**/*.tsx"
     #   - "src/**/*.js"
     #   - "src/**/*.jsx"
-
+ 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
   cancel-in-progress: true
-
+ 
 jobs:
   claude-review:
     # Optional: Filter by PR author
@@ -25,20 +25,20 @@ jobs:
     #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
     if: !endsWith(github.actor, '[bot]') && !github.event.pull_request.draft
     timeout-minutes: 15
-
+ 
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
       issues: read
       id-token: write
-
+ 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
-
+ 
       - name: Run Claude Code Review
         id: claude-review
         uses: anthropics/claude-code-action@v1

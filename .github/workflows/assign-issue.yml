@@ -1,0 +1,32 @@
+name: Assign Issue
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+
+jobs:
+  assign:
+    name: Add Assignee to Issue
+    runs-on: ubuntu-latest
+    # botが作成したIssueは除外
+    if: ${{ !endsWith(github.actor, '[bot]') }}
+
+    steps:
+      # Issueテンプレートの assignees はUIからの作成時のみ有効。
+      # API経由での作成や、外部ユーザーが作成した場合も確実に作成者をAssigneeに割り当てるためWorkflowでも設定する。
+      # 外部ユーザーはリポジトリのwrite権限がないためAssignee追加が失敗する場合があるが、
+      # continue-on-error により処理は継続される。
+      - name: Add issue creator as assignee
+        continue-on-error: true
+        uses: actions/github-script@v8
+        with:
+          script: |
+            await github.rest.issues.addAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              assignees: [context.actor],
+            });
