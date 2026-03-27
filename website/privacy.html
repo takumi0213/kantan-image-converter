@@ -212,6 +212,10 @@
 
     .permission-table td code { /* テーブル内 code は .inline-code を継承 */ }
 
+    .permission-note {
+      margin-top: 14px;
+    }
+
     .policy-link {
       color: var(--blue);
       text-decoration: none;
@@ -313,7 +317,7 @@
           </tr>
         </tbody>
       </table>
-      <p style="margin-top: 14px;">
+      <p class="permission-note">
         <code class="inline-code">host_permissions</code>
         は使用しておらず、特定のウェブサイトへの常時アクセス権は持ちません。
       </p>
