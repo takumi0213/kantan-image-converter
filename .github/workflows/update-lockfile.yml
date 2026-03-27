@@ -54,7 +54,7 @@ jobs:
         uses: actions/github-script@v8
         with:
           script: |
-            const prNumber = parseInt('${{ steps.cpr.outputs.pull-request-number }}');
+            const prNumber = parseInt('${{ steps.cpr.outputs.pull-request-number }}', 10);
 
             // Assignee 追加
             await github.rest.issues.addAssignees({
