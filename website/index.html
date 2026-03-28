@@ -41,103 +41,23 @@
   <!-- Theme Color -->
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./common.css">
+  <script src="./components.js" defer></script>
   <style>
+    /* ========== CSS変数（ページ固有） ========== */
     :root {
-      --blue: #2563eb;
-      --blue-dark: #1d4ed8;
-      --blue-light: #dbeafe;
-      --blue-pale: #eff6ff;
       --accent: #f97316;
       --accent-light: #fff7ed;
-      --text: #0f172a;
-      --text-mid: #475569;
-      --text-light: #94a3b8;
-      --border: #e2e8f0;
-      --bg: #ffffff;
-      --bg-subtle: #f8fafc;
-      --radius: 12px;
       --radius-lg: 20px;
-      --shadow-sm: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
       --shadow: 0 4px 16px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.06);
       --shadow-lg: 0 20px 40px rgba(0,0,0,.1), 0 8px 16px rgba(0,0,0,.06);
     }
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html { scroll-behavior: smooth; }
-
-    @media (prefers-reduced-motion: reduce) {
-      html {
-        scroll-behavior: auto;
-      }
-      .context-menu {
-        animation: none !important;
-        transition: none !important;
-      }
-    }
-    body {
-      font-family: "Noto Sans JP", sans-serif;
-      color: var(--text);
-      background: var(--bg);
-      line-height: 1.7;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    /* ========== LAYOUT ========== */
-    .container {
-      max-width: 820px;
-      margin: 0 auto;
-      padding: 0 24px;
-    }
-
     section { padding: 80px 0; }
     section + section { border-top: 1px solid var(--border); }
-
-    /* ========== NAV ========== */
-    nav {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: rgba(255,255,255,.92);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .nav-inner {
-      max-width: 820px;
-      margin: 0 auto;
-      padding: 0 24px;
-      height: 56px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .nav-logo {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--text);
-      text-decoration: none;
-      letter-spacing: -.01em;
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 24px;
-      list-style: none;
-    }
-
-    .nav-links a {
-      font-size: 13px;
-      color: var(--text-mid);
-      text-decoration: none;
-      transition: color .15s;
-    }
-
-    .nav-links a:hover { color: var(--blue); }
 
     /* ========== HERO ========== */
     .hero {
@@ -651,51 +571,6 @@
       gap: 4px;
     }
 
-    /* ========== FOOTER ========== */
-    footer {
-      background: var(--bg-subtle);
-      border-top: 1px solid var(--border);
-      padding: 40px 0;
-    }
-
-    .footer-inner {
-      max-width: 820px;
-      margin: 0 auto;
-      padding: 0 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .footer-left {
-      font-size: 13px;
-      color: var(--text-mid);
-    }
-
-    .footer-left strong {
-      display: block;
-      font-size: 14px;
-      color: var(--text);
-      margin-bottom: 4px;
-    }
-
-    .footer-links {
-      display: flex;
-      gap: 20px;
-      list-style: none;
-    }
-
-    .footer-links a {
-      font-size: 13px;
-      color: var(--text-mid);
-      text-decoration: none;
-      transition: color .15s;
-    }
-
-    .footer-links a:hover { color: var(--blue); }
-
     /* ========== NOTICE BOX ========== */
     .notice-box {
       margin-top: 32px;
@@ -834,13 +709,20 @@
       margin-top: 20px;
     }
 
+    /* ========== prefers-reduced-motion（ページ固有） ========== */
+    @media (prefers-reduced-motion: reduce) {
+      .context-menu {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+
     /* ========== RESPONSIVE ========== */
     @media (max-width: 680px) {
       .hero-inner { grid-template-columns: 1fr; }
       .hero-visual { display: none; }
       .features-grid { grid-template-columns: 1fr; }
       .install-grid { grid-template-columns: 1fr; }
-      .nav-links { display: none; }
       section { padding: 56px 0; }
     }
   </style>
@@ -848,19 +730,7 @@
 <body>
 
 <!-- NAV -->
-<nav>
-  <div class="nav-inner">
-    <a href="#" class="nav-logo">かんたん画像変換</a>
-    <ul class="nav-links">
-      <li><a href="#features">機能</a></li>
-      <li><a href="#howto">使い方</a></li>
-      <li><a href="#install">インストール</a></li>
-      <li><a href="#spec">技術仕様</a></li>
-      <li><a href="#faq">FAQ</a></li>
-      <li><a href="https://github.com/takumi0213/kantan-image-converter">GitHub</a></li>
-    </ul>
-  </div>
-</nav>
+<nav data-page="top"></nav>
 
 <!-- HERO -->
 <section class="hero">
@@ -1255,21 +1125,7 @@
     </div>
   </div>
 </section>
-<footer>
-  <div class="footer-inner">
-    <div class="footer-left">
-      <strong>かんたん画像変換</strong>
-      GNU General Public License v3.0 &nbsp;·&nbsp; Copyright © 2026 takumi0213
-    </div>
-    <ul class="footer-links">
-      <li><a href="https://github.com/takumi0213/kantan-image-converter">GitHub</a></li>
-      <li><a href="https://github.com/takumi0213/kantan-image-converter/releases">Releases</a></li>
-      <li><a href="https://github.com/takumi0213/kantan-image-converter/blob/main/CONTRIBUTING.md">Contributing</a></li>
-      <li><a href="https://github.com/takumi0213/kantan-image-converter/blob/main/CODE_OF_CONDUCT.md">Code of Conduct</a></li>
-      <li><a href="https://github.com/takumi0213/kantan-image-converter/security/advisories/new">Security</a></li>
-    </ul>
-  </div>
-</footer>
+<footer></footer>
 
 </body>
 </html>
