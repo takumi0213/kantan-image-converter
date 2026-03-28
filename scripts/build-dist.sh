@@ -24,11 +24,21 @@ set -eu
 
 VERSION="${1:?Usage: build-dist.sh <version>}"
 
+# VERSION を v1.2.3 形式に制限（スラッシュ・空白等を含む値を拒否）
+if ! printf '%s\n' "${VERSION}" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+  echo "Error: version must be in 'v1.2.3' format, got: ${VERSION}" >&2
+  exit 1
+fi
+
 # スクリプト自身の場所からリポジトリルートへ移動
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO_ROOT"
 
+ZIP_NAME="kantan-image-converter-${VERSION}.zip"
 DIST_DIR="kantan-image-converter"
+
+# 再実行時に古いZIPとディレクトリが残らないようクリーン
+rm -f "${ZIP_NAME}"
 rm -rf "$DIST_DIR"
 mkdir -p "$DIST_DIR/icons" "$DIST_DIR/docs"
 
@@ -42,5 +52,6 @@ cp docs/popup.js   "$DIST_DIR/docs/"
 cp docs/demo.html  "$DIST_DIR/docs/"
 cp LICENSE         "$DIST_DIR/"
 
-zip -r "kantan-image-converter-${VERSION}.zip" "$DIST_DIR"
-echo "Created: kantan-image-converter-${VERSION}.zip"
+# manifest.json がZIP直下に来るよう、ディレクトリの中身を圧縮する
+(cd "$DIST_DIR" && zip -r "../${ZIP_NAME}" .)
+echo "Created: ${ZIP_NAME}"
