@@ -271,7 +271,8 @@
       <h2>収集する情報</h2>
       <p>
         かんたん画像変換は、変換処理の品質監視のみを目的として、以下の匿名メトリクスを
-        Google Analytics 4（Measurement Protocol）へ送信します。
+        Cloudflare Worker プロキシ経由で Google Analytics 4（Measurement Protocol）へ送信します。
+        <code class="inline-code">api_secret</code> は拡張機能のソースコードには含まれず、Worker の環境変数に保管しています。
       </p>
       <table class="permission-table">
         <thead>
@@ -284,7 +285,7 @@
         <tbody>
           <tr>
             <td><code class="inline-code">conversion_result</code></td>
-            <td>変換完了時（成功・フォールバック・失敗）</td>
+            <td>変換完了時（成功・フォールバック・失敗）※保存ダイアログをキャンセルした場合は送信しない</td>
             <td><code class="inline-code">format</code>（jpg/png/webp）、<code class="inline-code">result</code>（success/fallback/error）、<code class="inline-code">extension_version</code></td>
           </tr>
           <tr>
@@ -327,7 +328,7 @@
         </thead>
         <tbody>
           <tr>
-            <td><code class="inline-code">www.google-analytics.com</code></td>
+            <td><code class="inline-code">www.google-analytics.com</code>（Cloudflare Worker プロキシ経由）</td>
             <td>変換処理の品質監視</td>
             <td>変換結果・エラー分類・バージョン番号のみ</td>
           </tr>
