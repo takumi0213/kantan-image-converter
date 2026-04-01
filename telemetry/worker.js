@@ -21,8 +21,8 @@
  * api_secret は Worker の環境変数 (シークレット) に保管し、
  * 拡張機能のソースコードには一切含まれない。
  *
- * 環境変数（wrangler secret put で登録）:
- *   GA4_MEASUREMENT_ID  - GA4 プロパティのMeasurement ID (例: G-XXXXXXXXXX)
+ * 環境変数:
+ *   GA4_MEASUREMENT_ID  - GA4 プロパティの Measurement ID
  *   GA4_API_SECRET      - GA4 Measurement Protocol の API Secret
  */
 
@@ -52,9 +52,21 @@ const GA4_ENDPOINT = "https://www.google-analytics.com/mp/collect";
 // ── メインハンドラ ──────────────────────────────────────────────────────────
 export default {
   async fetch(request, env) {
+    // 環境変数の設定確認
+    if (!env.GA4_MEASUREMENT_ID || !env.GA4_API_SECRET) {
+      console.error("[telemetry] GA4_MEASUREMENT_ID or GA4_API_SECRET is not set");
+      return new Response("Internal Server Error", { status: 500 });
+    }
+
     // POST のみ受け付ける
     if (request.method !== "POST") {
       return new Response("Method Not Allowed", { status: 405 });
+    }
+
+    // Origin を chrome-extension:// に限定（第三者からの濫用を防止）
+    const origin = request.headers.get("Origin") ?? "";
+    if (!origin.startsWith("chrome-extension://")) {
+      return new Response("Forbidden", { status: 403 });
     }
 
     // リクエストボディを JSON としてパース
