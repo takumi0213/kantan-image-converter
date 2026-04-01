@@ -54,12 +54,12 @@ const ERROR_BADGE_DURATION = 4000;
 // ========================================================
 
 /**
- * GA4 Measurement Protocol エンドポイント
- * 品質監視専用（マーケティング・ユーザー追跡目的では使用しない）
+ * テレメトリ送信先 (Cloudflare Worker プロキシ)
+ * api_secret は Worker の環境変数に保管するため、このファイルには含まれない。
+ * TODO: wrangler deploy 後に表示される Worker URL に差し替えること
+ *       (例: https://kantan-image-converter-telemetry.<your-subdomain>.workers.dev)
  */
-const TELEMETRY_ENDPOINT  = "https://www.google-analytics.com/mp/collect";
-const GA4_MEASUREMENT_ID  = "G-XXXXXXXXXX"; // TODO: 実際のMeasurement IDに差し替えること
-const GA4_API_SECRET      = "XXXXXXXXXXXX"; // TODO: 実際のAPI Secretに差し替えること
+const TELEMETRY_ENDPOINT = "https://YOUR_WORKER_URL.workers.dev"; // TODO: 実際のWorker URLに差し替えること
 
 /** 送信を許可するイベント名 */
 const ALLOWED_EVENTS  = new Set(["conversion_result", "conversion_error"]);
@@ -130,6 +130,7 @@ function sendTelemetry(eventName, params) {
   }
 
   // --- ペイロード構築（許可フィールドのみ）---
+  // Worker 側で client_id 等を付加するため、ここではイベント情報のみ組み立てる
   const eventParams = { extension_version: params.extension_version };
 
   if (eventName === "conversion_result") {
@@ -140,22 +141,12 @@ function sendTelemetry(eventName, params) {
     eventParams.reason = params.reason;
   }
 
-  const payload = {
-    // client_id は毎回の乱数とし、ユーザーの継続追跡を防ぐ
-    client_id: `ext_${Math.random().toString(36).slice(2, 10)}`,
-    non_personalized_ads: true,
-    events: [{ name: eventName, params: eventParams }],
-  };
-
   // --- 非同期送信（try-catch で本処理に影響させない）---
   try {
-    const url = `${TELEMETRY_ENDPOINT}?measurement_id=${GA4_MEASUREMENT_ID}&api_secret=${GA4_API_SECRET}`;
-    fetch(url, {
+    fetch(TELEMETRY_ENDPOINT, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ eventName, params: eventParams }),
       keepalive: true, // Service Worker 終了後も送信を完了させる
     }).catch(() => {
       // 送信失敗は完全無視
@@ -320,8 +311,11 @@ async function handleImageSave(info, tab, formatKey) {
     if (result && result.dataUrl) {
       // 変換成功 → data URL でダウンロード
       try {
-        await downloadFile(result.dataUrl, filename);
-        sendTelemetry("conversion_result", { format: formatKey, result: "success", extension_version: version });
+        const downloadId = await downloadFile(result.dataUrl, filename);
+        // キャンセル時（downloadId === undefined）はテレメトリ送信をスキップ
+        if (downloadId !== undefined) {
+          sendTelemetry("conversion_result", { format: formatKey, result: "success", extension_version: version });
+        }
       } catch {
         showError("画像の保存に失敗しました。");
         sendTelemetry("conversion_result", { format: formatKey, result: "error",  extension_version: version });
@@ -372,7 +366,7 @@ async function handleImageSave(info, tab, formatKey) {
     console.error("[かんたん画像変換] Unexpected error:", err);
     showError("画像の保存に失敗しました。");
     sendTelemetry("conversion_result", { format: formatKey, result: "error",  extension_version: version });
-    sendTelemetry("conversion_error",  { format: formatKey, reason: "unknown", extension_version: version });
+    // 予期しない例外のため原因が特定できない。conversion_error は送信しない。
   }
 }
 
@@ -614,9 +608,8 @@ async function downloadFile(dataUrl, filename) {
  */
 async function downloadOriginal(srcUrl, filename) {
   // blob: は chrome.downloads.download で直接使えない。
-  // 呼び出し元の catch でエラーテレメトリが正しく送信されるよう例外をスローする。
+  // showError は呼び出し元の catch で行うため、ここでは例外のみスローする。
   if (srcUrl.startsWith("blob:")) {
-    showError("この画像は直接ダウンロードできません。");
     throw new Error("blob URL cannot be downloaded directly");
   }
 
