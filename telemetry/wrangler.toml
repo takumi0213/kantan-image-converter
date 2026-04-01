@@ -1,0 +1,4 @@
+name       = "kantan-image-converter-telemetry"
+main       = "worker.js"
+# Node.js 互換モードを使わないため compatibility_date のみ指定
+compatibility_date = "2025-01-01"
