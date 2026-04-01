@@ -56,10 +56,8 @@ const ERROR_BADGE_DURATION = 4000;
 /**
  * テレメトリ送信先 (Cloudflare Worker プロキシ)
  * api_secret は Worker の環境変数に保管するため、このファイルには含まれない。
- * TODO: wrangler deploy 後に表示される Worker URL に差し替えること
- *       (例: https://kantan-image-converter-telemetry.<your-subdomain>.workers.dev)
  */
-const TELEMETRY_ENDPOINT = "https://YOUR_WORKER_URL.workers.dev"; // TODO: 実際のWorker URLに差し替えること
+const TELEMETRY_ENDPOINT = "https://YOUR_WORKER_URL.workers.dev"; // Worker デプロイ後に差し替えること
 
 /** 送信を許可するイベント名 */
 const ALLOWED_EVENTS  = new Set(["conversion_result", "conversion_error"]);
@@ -78,6 +76,11 @@ const ALLOWED_REASONS = new Set([
   "fallback_download_failed",
   "unknown",
 ]);
+/** テレメトリパラメータに含めてはいけないフィールド名 */
+const FORBIDDEN_KEYS = [
+  "url", "src", "srcUrl", "tab", "tabUrl", "filename",
+  "message", "errorMessage", "sessionId", "userId", "clientId",
+];
 
 // ========================================================
 // テレメトリ
@@ -121,10 +124,6 @@ function sendTelemetry(eventName, params) {
   }
 
   // 禁止フィールドが含まれていないことを確認
-  const FORBIDDEN_KEYS = [
-    "url", "src", "srcUrl", "tab", "tabUrl", "filename",
-    "message", "errorMessage", "sessionId", "userId", "clientId",
-  ];
   for (const key of FORBIDDEN_KEYS) {
     if (key in params) return;
   }
@@ -297,11 +296,14 @@ async function handleImageSave(info, tab, formatKey) {
       try {
         await downloadOriginal(srcUrl, filename);
         sendTelemetry("conversion_result", { format: formatKey, result: "fallback", extension_version: version });
+        // スクリプト注入が根本原因
         sendTelemetry("conversion_error",  { format: formatKey, reason: "execute_script_failed", extension_version: version });
       } catch {
         showError("画像の保存に失敗しました。");
         sendTelemetry("conversion_result", { format: formatKey, result: "error",    extension_version: version });
-        sendTelemetry("conversion_error",  { format: formatKey, reason: "execute_script_failed", extension_version: version });
+        // 根本原因（スクリプト注入失敗）と直接原因（フォールバックDL失敗）を両方送信
+        sendTelemetry("conversion_error",  { format: formatKey, reason: "execute_script_failed",    extension_version: version });
+        sendTelemetry("conversion_error",  { format: formatKey, reason: "fallback_download_failed", extension_version: version });
       }
       return;
     }
