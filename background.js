@@ -152,6 +152,9 @@ function sendTelemetry(eventName, params) {
     const url = `${TELEMETRY_ENDPOINT}?measurement_id=${GA4_MEASUREMENT_ID}&api_secret=${GA4_API_SECRET}`;
     fetch(url, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify(payload),
       keepalive: true, // Service Worker 終了後も送信を完了させる
     }).catch(() => {
