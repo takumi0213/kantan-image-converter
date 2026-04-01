@@ -102,13 +102,13 @@ Manifest V3 に対応したChromiumベースのブラウザで動作します。
 
 ### 品質メトリクス
 
-変換処理の品質監視を目的として、Google Analytics 4（Measurement Protocol）へ匿名メトリクスを送信しています。
+変換処理の品質監視を目的として、Cloudflare Worker プロキシ経由で Google Analytics 4（Measurement Protocol）へ匿名メトリクスを送信しています。`api_secret` は拡張機能のソースコードには含まれず、Worker の環境変数に保管しています。
 
 **送信するイベント**
 
 | イベント | 送信条件 | パラメータ |
 | --- | --- | --- |
-| `conversion_result` | 変換完了時（成功・フォールバック・失敗） | `format`, `result`, `extension_version` |
+| `conversion_result` | 変換完了時（成功・フォールバック・失敗）※ダイアログキャンセル時は除く | `format`, `result`, `extension_version` |
 | `conversion_error` | エラー発生時（原因が特定できる場合のみ） | `format`, `reason`, `extension_version` |
 
 **送信しない情報**
