@@ -354,7 +354,8 @@ async function handleImageSave(info, tab, formatKey) {
       try {
         await downloadOriginal(srcUrl, filename);
         sendTelemetry("conversion_result", { format: formatKey, result: "fallback", extension_version: version });
-        // 原因が特定できた場合のみ conversion_error を送信（仕様 §3.2 準拠）
+        // csError がある場合は conversion_error を送信する。
+        // 分類できた場合は具体的な reason、できなかった場合は "unknown" を送る（エラーがあった事実自体が有用）
         if (csError) {
           sendTelemetry("conversion_error", { format: formatKey, reason, extension_version: version });
         }
