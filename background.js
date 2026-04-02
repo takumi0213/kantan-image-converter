@@ -104,6 +104,9 @@ function sendTelemetry(eventName, params) {
   // イベント名
   if (!ALLOWED_EVENTS.has(eventName)) return;
 
+  // params の型チェック（null/undefined/非オブジェクトは弾く）
+  if (!params || typeof params !== "object") return;
+
   // 必須フィールドの存在確認
   if (params.format === undefined || params.extension_version === undefined) return;
 
@@ -328,8 +331,13 @@ async function handleImageSave(info, tab, formatKey) {
       try {
         await downloadOriginal(srcUrl, buildFilename(srcUrl, getOriginalExt(srcUrl)));
         sendTelemetry("conversion_result", { format: formatKey, result: "fallback", extension_version: version });
-      } catch {
-        showError("画像の保存に失敗しました。");
+      } catch (err) {
+        // blob: URL の場合は専用メッセージを表示
+        if (err instanceof BlobDownloadError) {
+          showError("この画像は直接ダウンロードできません。");
+        } else {
+          showError("画像の保存に失敗しました。");
+        }
         sendTelemetry("conversion_result", { format: formatKey, result: "error",    extension_version: version });
         sendTelemetry("conversion_error",  { format: formatKey, reason: "fallback_download_failed", extension_version: version });
       }
@@ -582,6 +590,17 @@ async function contentScriptConvert(srcUrl, targetMime) {
 // ========================================================
 
 /**
+ * blob: URL を直接ダウンロードできない場合にスローする専用エラー。
+ * 呼び出し元でこのクラスを判定し、ユーザー向けメッセージを出し分ける。
+ */
+class BlobDownloadError extends Error {
+  constructor() {
+    super("blob URL cannot be downloaded directly");
+    this.name = "BlobDownloadError";
+  }
+}
+
+/**
  * data URL をダウンロードする（名前を付けて保存ダイアログを表示）。
  * @param {string} dataUrl
  * @param {string} filename
@@ -612,8 +631,9 @@ async function downloadFile(dataUrl, filename) {
 async function downloadOriginal(srcUrl, filename) {
   // blob: は chrome.downloads.download で直接使えない。
   // showError は呼び出し元の catch で行うため、ここでは例外のみスローする。
+  // BlobDownloadError を使うことで呼び出し元がメッセージを出し分けられる。
   if (srcUrl.startsWith("blob:")) {
-    throw new Error("blob URL cannot be downloaded directly");
+    throw new BlobDownloadError();
   }
 
   return new Promise((resolve, reject) => {
