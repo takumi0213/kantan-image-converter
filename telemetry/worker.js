@@ -62,8 +62,8 @@ function corsHeaders(origin) {
 
 // ── メインハンドラ ──────────────────────────────────────────────────────────
 export default {
-  async fetch(request, env) {
-    // 環境変数の設定確認
+  async fetch(request, env, ctx) {
+    // 環境変数の設定確認（Origin不明のため CORSヘッダーなし）
     if (!env.GA4_MEASUREMENT_ID || !env.GA4_API_SECRET) {
       console.error("[telemetry] GA4_MEASUREMENT_ID or GA4_API_SECRET is not set");
       return new Response("Internal Server Error", { status: 500 });
@@ -83,7 +83,7 @@ export default {
 
     // POST のみ受け付ける
     if (request.method !== "POST") {
-      return new Response("Method Not Allowed", { status: 405 });
+      return new Response("Method Not Allowed", { status: 405, headers: corsHeaders(origin) });
     }
 
     // リクエストボディを JSON としてパース
@@ -91,42 +91,42 @@ export default {
     try {
       body = await request.json();
     } catch {
-      return new Response("Bad Request", { status: 400 });
+      return new Response("Bad Request", { status: 400, headers: corsHeaders(origin) });
     }
 
     // body が null または非オブジェクトの場合は弾く
     if (!body || typeof body !== "object") {
-      return new Response("Bad Request", { status: 400 });
+      return new Response("Bad Request", { status: 400, headers: corsHeaders(origin) });
     }
 
     const { eventName, params } = body;
 
     // ── バリデーション（background.js の sendTelemetry と同一ロジック）──
     if (!ALLOWED_EVENTS.has(eventName)) {
-      return new Response("Bad Request", { status: 400 });
+      return new Response("Bad Request", { status: 400, headers: corsHeaders(origin) });
     }
     if (params?.format === undefined || params?.extension_version === undefined) {
-      return new Response("Bad Request", { status: 400 });
+      return new Response("Bad Request", { status: 400, headers: corsHeaders(origin) });
     }
     if (!ALLOWED_FORMATS.has(params.format)) {
-      return new Response("Bad Request", { status: 400 });
+      return new Response("Bad Request", { status: 400, headers: corsHeaders(origin) });
     }
     if (!/^\d+\.\d+\.\d+$/.test(params.extension_version)) {
-      return new Response("Bad Request", { status: 400 });
+      return new Response("Bad Request", { status: 400, headers: corsHeaders(origin) });
     }
     if (eventName === "conversion_result") {
       if (!ALLOWED_RESULTS.has(params.result)) {
-        return new Response("Bad Request", { status: 400 });
+        return new Response("Bad Request", { status: 400, headers: corsHeaders(origin) });
       }
     }
     if (eventName === "conversion_error") {
       if (!ALLOWED_REASONS.has(params.reason)) {
-        return new Response("Bad Request", { status: 400 });
+        return new Response("Bad Request", { status: 400, headers: corsHeaders(origin) });
       }
     }
     for (const key of FORBIDDEN_KEYS) {
       if (key in params) {
-        return new Response("Bad Request", { status: 400 });
+        return new Response("Bad Request", { status: 400, headers: corsHeaders(origin) });
       }
     }
 
@@ -147,19 +147,21 @@ export default {
       events: [{ name: eventName, params: eventParams }],
     };
 
-    // ── GA4 へ転送 ────────────────────────────────────────────────────────
+    // ── GA4 へ転送（バックグラウンド実行）───────────────────────────────
+    // ctx.waitUntil() でレスポンス返却後もリクエストを継続し、
+    // 拡張機能を GA4 応答待ちにさせない
     const ga4Url = `${GA4_ENDPOINT}?measurement_id=${env.GA4_MEASUREMENT_ID}&api_secret=${env.GA4_API_SECRET}`;
-    try {
-      await fetch(ga4Url, {
+    ctx.waitUntil(
+      fetch(ga4Url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-      });
-    } catch {
-      // GA4 への送信失敗は無視（拡張機能側と同様の方針）
-    }
+      }).catch(() => {
+        // GA4 への送信失敗は無視
+      })
+    );
 
-    // 拡張機能には成功を返す（GA4 の応答を待たせない）
+    // 拡張機能には即座に成功を返す（GA4 の応答は待たない）
     return new Response(null, { status: 204, headers: corsHeaders(origin) });
   },
 };
