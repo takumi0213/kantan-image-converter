@@ -328,9 +328,14 @@
         </thead>
         <tbody>
           <tr>
-            <td><code class="inline-code">www.google-analytics.com</code>（Cloudflare Worker プロキシ経由）</td>
-            <td>変換処理の品質監視</td>
+            <td><code class="inline-code">*.workers.dev</code>（Cloudflare Worker）</td>
+            <td>変換処理の品質監視（テレメトリプロキシ）</td>
             <td>変換結果・エラー分類・バージョン番号のみ</td>
+          </tr>
+          <tr>
+            <td><code class="inline-code">www.google-analytics.com</code>（Google Analytics 4）</td>
+            <td>品質メトリクスの記録（Worker から転送）</td>
+            <td>同上（Worker が転送。拡張機能からは直接通信しない）</td>
           </tr>
         </tbody>
       </table>
