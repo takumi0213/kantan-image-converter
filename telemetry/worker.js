@@ -49,6 +49,17 @@ const FORBIDDEN_KEYS = [
 
 const GA4_ENDPOINT = "https://www.google-analytics.com/mp/collect";
 
+// ── CORS ヘッダーを付与するヘルパー ──────────────────────────────────────
+// chrome-extension:// Origin に対してのみ許可する
+function corsHeaders(origin) {
+  return {
+    "Access-Control-Allow-Origin":  origin,
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Max-Age":       "86400",
+  };
+}
+
 // ── メインハンドラ ──────────────────────────────────────────────────────────
 export default {
   async fetch(request, env) {
@@ -58,15 +69,21 @@ export default {
       return new Response("Internal Server Error", { status: 500 });
     }
 
-    // POST のみ受け付ける
-    if (request.method !== "POST") {
-      return new Response("Method Not Allowed", { status: 405 });
-    }
-
     // Origin を chrome-extension:// に限定（第三者からの濫用を防止）
     const origin = request.headers.get("Origin") ?? "";
     if (!origin.startsWith("chrome-extension://")) {
       return new Response("Forbidden", { status: 403 });
+    }
+
+    // CORS プリフライト（OPTIONS）への応答
+    // Content-Type: application/json を含む POST には事前確認リクエストが発生するため必須
+    if (request.method === "OPTIONS") {
+      return new Response(null, { status: 204, headers: corsHeaders(origin) });
+    }
+
+    // POST のみ受け付ける
+    if (request.method !== "POST") {
+      return new Response("Method Not Allowed", { status: 405 });
     }
 
     // リクエストボディを JSON としてパース
@@ -74,6 +91,11 @@ export default {
     try {
       body = await request.json();
     } catch {
+      return new Response("Bad Request", { status: 400 });
+    }
+
+    // body が null または非オブジェクトの場合は弾く
+    if (!body || typeof body !== "object") {
       return new Response("Bad Request", { status: 400 });
     }
 
@@ -138,6 +160,6 @@ export default {
     }
 
     // 拡張機能には成功を返す（GA4 の応答を待たせない）
-    return new Response(null, { status: 204 });
+    return new Response(null, { status: 204, headers: corsHeaders(origin) });
   },
 };
