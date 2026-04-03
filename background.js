@@ -104,8 +104,9 @@ function sendTelemetry(eventName, params) {
   // イベント名
   if (!ALLOWED_EVENTS.has(eventName)) return;
 
-  // params の型チェック（null/undefined/非オブジェクトは弾く）
-  if (!params || typeof params !== "object") return;
+  // params の型チェック（null/undefined/非オブジェクト/配列は弾く）
+  // telemetry/worker.js の同一チェックと同期すること
+  if (!params || typeof params !== "object" || Array.isArray(params)) return;
 
   // 必須フィールドの存在確認
   if (params.format === undefined || params.extension_version === undefined) return;
