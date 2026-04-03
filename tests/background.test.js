@@ -367,8 +367,8 @@ const FORBIDDEN_KEYS_T = [
  */
 function validateTelemetry(eventName, params) {
   if (!ALLOWED_EVENTS_T.has(eventName)) return false;
-  // params の型チェック（background.js の sendTelemetry と同期）
-  if (!params || typeof params !== "object") return false;
+  // params の型チェック（background.js の sendTelemetry / telemetry/worker.js と同期すること）
+  if (!params || typeof params !== "object" || Array.isArray(params)) return false;
   if (params.format === undefined || params.extension_version === undefined) return false;
   if (!ALLOWED_FORMATS_T.has(params.format)) return false;
   if (!/^\d+\.\d+\.\d+$/.test(params.extension_version)) return false;
@@ -411,6 +411,8 @@ group("telemetry: conversion_result バリデーション", () => {
     validateTelemetry("conversion_result", null));
   assertFalse("params が undefined は弾く",
     validateTelemetry("conversion_result", undefined));
+  assertFalse("params が配列は弾く",
+    validateTelemetry("conversion_result", ["jpg", "success"]));
 });
 
 group("telemetry: conversion_error バリデーション", () => {
