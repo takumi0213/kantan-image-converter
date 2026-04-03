@@ -57,7 +57,7 @@ const ERROR_BADGE_DURATION = 4000;
  * テレメトリ送信先 (Cloudflare Worker プロキシ)
  * api_secret は Worker の環境変数に保管するため、このファイルには含まれない。
  */
-const TELEMETRY_ENDPOINT = "https://YOUR_WORKER_URL.workers.dev"; // Worker デプロイ後に差し替えること
+const TELEMETRY_ENDPOINT = "https://telemetry.takumi0213.com";
 
 /** 送信を許可するイベント名 */
 const ALLOWED_EVENTS  = new Set(["conversion_result", "conversion_error"]);
