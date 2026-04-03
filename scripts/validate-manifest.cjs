@@ -102,6 +102,70 @@ for (const perm of REQUIRED_PERMISSIONS) {
 check("host_permissions が使用されていない",
   !manifest.host_permissions || manifest.host_permissions.length === 0);
 
+// ---- テレメトリ定数の三重定義ドリフト検知 ----
+// background.js / telemetry/worker.js / tests/background.test.js で
+// 同一定数が三重定義されているため、CI で差分を自動検出する
+console.log("\ntelemetry constants drift check\n");
+
+const BG_PATH   = path.resolve(ROOT, "background.js");
+const WK_PATH   = path.resolve(ROOT, "telemetry/worker.js");
+const TEST_PATH = path.resolve(ROOT, "tests/background.test.js");
+
+function extractSet(src, varName) {
+  // new Set([ ... ]) の中身を抽出
+  const re = new RegExp(`const ${varName}[_T]*\\s*=\\s*new Set\\(\\[([^\\]]+)\\]\\)`, "s");
+  const m = src.match(re);
+  if (!m) return null;
+  return new Set(m[1].match(/"([^"]+)"/g)?.map(s => s.replace(/"/g, "")) ?? []);
+}
+
+function extractArray(src, varName) {
+  // const VARNAME = [ ... ] または const VARNAME_T = [ ... ] の中身を抽出
+  const re = new RegExp(`const ${varName}[_T]*\\s*=\\s*\\[([^\\]]+)\\]`, "s");
+  const m = src.match(re);
+  if (!m) return null;
+  return new Set(m[1].match(/"([^"]+)"/g)?.map(s => s.replace(/"/g, "")) ?? []);
+}
+
+function setsEqual(a, b) {
+  if (!a || !b) return false;
+  if (a.size !== b.size) return false;
+  for (const v of a) if (!b.has(v)) return false;
+  return true;
+}
+
+let bgSrc, wkSrc, testSrc;
+try {
+  bgSrc   = fs.readFileSync(BG_PATH,   "utf8");
+  wkSrc   = fs.readFileSync(WK_PATH,   "utf8");
+  testSrc = fs.readFileSync(TEST_PATH, "utf8");
+} catch (err) {
+  console.error(`Failed to read source file: ${err.message}`);
+  process.exit(1);
+}
+
+const CONST_NAMES = ["ALLOWED_EVENTS", "ALLOWED_FORMATS", "ALLOWED_RESULTS", "ALLOWED_REASONS"];
+for (const name of CONST_NAMES) {
+  const bgVal   = extractSet(bgSrc,   name);
+  const wkVal   = extractSet(wkSrc,   name);
+  const testVal = extractSet(testSrc, name);
+  const bgEqWk   = setsEqual(bgVal,   wkVal);
+  const bgEqTest = setsEqual(bgVal,   testVal);
+  check(
+    `${name}: background.js / worker.js / test.js が一致する`,
+    bgEqWk && bgEqTest,
+  );
+}
+
+// FORBIDDEN_KEYS は配列定義なので別途抽出
+const fkBg   = extractArray(bgSrc,   "FORBIDDEN_KEYS");
+const fkWk   = extractArray(wkSrc,   "FORBIDDEN_KEYS");
+const fkTest = extractArray(testSrc, "FORBIDDEN_KEYS");
+check(
+  "FORBIDDEN_KEYS: background.js / worker.js / test.js が一致する",
+  setsEqual(fkBg, fkWk) && setsEqual(fkBg, fkTest),
+);
+
 // ---- 結果 ----
 console.log(`\n${"─".repeat(40)}`);
 console.log(`Results: ${passed} passed, ${failed} failed`);

@@ -21,23 +21,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>かんたん画像変換 — 右クリックで変換・保存</title>
-  <meta name="description" content="Webページの画像を右クリックでJPG・PNG・WebPに変換して保存できるChromium系ブラウザ向け拡張機能。外部通信なし、ローカル完結。">
+  <meta name="description" content="Webページの画像を右クリックでJPG・PNG・WebPに変換してダウンロード。画像データはブラウザ内で完結。品質監視のみ匿名メトリクスを送信。">
   <!-- Favicon -->
   <link rel="icon" href="./favicon.ico">
   <!-- Canonical -->
-  <link rel="canonical" href="https://takumi0213.github.io/kantan-image-converter/">
+  <link rel="canonical" href="https://img-convert.takumi0213.com/">
   <!-- OGP -->
   <meta property="og:title" content="かんたん画像変換 — 右クリックで変換・保存">
-  <meta property="og:description" content="Webページの画像を右クリックでJPG・PNG・WebPに変換して保存できるChromium系ブラウザ向け拡張機能。外部通信なし、ローカル完結。">
-  <meta property="og:image" content="https://takumi0213.github.io/kantan-image-converter/ogp.png">
-  <meta property="og:url" content="https://takumi0213.github.io/kantan-image-converter/">
+  <meta property="og:description" content="Webページの画像を右クリックでJPG・PNG・WebPに変換してダウンロード。画像データはブラウザ内で完結。品質監視のみ匿名メトリクスを送信。">
+  <meta property="og:image" content="https://img-convert.takumi0213.com/ogp.png">
+  <meta property="og:url" content="https://img-convert.takumi0213.com/">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="ja_JP">
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="かんたん画像変換 — 右クリックで変換・保存">
-  <meta name="twitter:description" content="Webページの画像を右クリックでJPG・PNG・WebPに変換して保存できるChromium系ブラウザ向け拡張機能。外部通信なし、ローカル完結。">
-  <meta name="twitter:image" content="https://takumi0213.github.io/kantan-image-converter/ogp.png">
+  <meta name="twitter:description" content="Webページの画像を右クリックでJPG・PNG・WebPに変換してダウンロード。画像データはブラウザ内で完結。品質監視のみ匿名メトリクスを送信。">
+  <meta name="twitter:image" content="https://img-convert.takumi0213.com/ogp.png">
   <!-- Theme Color -->
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
@@ -747,7 +747,7 @@
         <h1>右クリックで<br><em>かんたん</em>に<br>画像を変換・保存</h1>
         <p class="hero-desc">
           Webページの画像をJPG・PNG・WebPに変換してダウンロード。<br>
-          すべての処理はブラウザ内で完結。外部サーバーへの通信なし。
+          画像の変換処理はすべてブラウザ内で完結します。
         </p>
         <div class="hero-actions">
           <a href="https://github.com/takumi0213/kantan-image-converter/releases" class="btn btn-primary">
@@ -765,7 +765,7 @@
         </div>
         <div class="tag-row">
           <span class="tag">無料・オープンソース</span>
-          <span class="tag">外部通信なし</span>
+          <span class="tag">画像変換はブラウザ内完結</span>
           <span class="tag">GNU GPL v3.0</span>
         </div>
       </div>
@@ -851,8 +851,8 @@
             <path d="M9 6v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
           </svg>
         </div>
-        <div class="feature-title">ローカル完結</div>
-        <div class="feature-desc">すべての変換処理はブラウザ内で実行。画像データが外部に送信されることはありません。</div>
+        <div class="feature-title">画像データはローカル完結</div>
+        <div class="feature-desc">画像の変換処理はすべてブラウザ内で実行され、画像データが外部へ出ることはありません。品質監視のための匿名メトリクス送信については<a href="privacy.html" style="color:var(--blue)">プライバシーポリシー</a>をご覧ください。</div>
       </div>
       <div class="feature-card">
         <div class="feature-icon">
@@ -1027,6 +1027,12 @@
         </div>
       </div>
       <div class="spec-block">
+        <div class="spec-label">品質監視</div>
+        <div class="spec-body">
+          変換結果・エラー分類・バージョン番号のみを Google Analytics 4 へ匿名送信しています。URL・ファイル名・画像データは含まれません。詳細は<a href="privacy.html" style="color:var(--blue)">プライバシーポリシー</a>をご覧ください。
+        </div>
+      </div>
+      <div class="spec-block">
         <div class="spec-label">アーキテクチャ</div>
         <div class="spec-body">
           メイン処理は Service Worker（<code>background.js</code>）に集約したシンプル構成です（拡張機能のポップアップや <code>docs/</code> 配下のデモUIなどの画面は別HTMLとして実装）。
@@ -1080,7 +1086,7 @@
           <span class="summary-icon"></span>
         </summary>
         <div class="faq-answer">
-          送信されません。すべての変換処理はブラウザ内（OffscreenCanvas）で完結しており、画像データが外部サーバーに送信されることは一切ありません。
+          画像データは送信されません。変換処理はすべてブラウザ内（OffscreenCanvas）で完結しており、画像データが外部に出ることはありません。<br>なお、変換処理の品質監視を目的として、変換結果・エラー分類・バージョン番号のみを Google Analytics 4 へ匿名で送信しています（URL・ファイル名・画像データは含まれません）。
         </div>
       </details>
       <details>

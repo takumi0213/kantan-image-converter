@@ -34,20 +34,138 @@ const ALLOWED_SCHEMES = ["http:", "https:", "data:", "blob:"];
 /** コンテキストメニューID */
 const MENU_IDS = {
   PARENT: "kantan-image-parent",
-  JPG: "kantan-image-jpg",
-  PNG: "kantan-image-png",
-  WEBP: "kantan-image-webp",
+  JPG:    "kantan-image-jpg",
+  PNG:    "kantan-image-png",
+  WEBP:   "kantan-image-webp",
 };
 
 /** MIME タイプマッピング */
 const FORMAT_CONFIG = {
-  jpg: { mime: "image/jpeg", ext: ".jpg" },
-  png: { mime: "image/png", ext: ".png" },
+  jpg:  { mime: "image/jpeg", ext: ".jpg" },
+  png:  { mime: "image/png",  ext: ".png" },
   webp: { mime: "image/webp", ext: ".webp" },
 };
 
 /** エラーバッジ表示時間 (ms) */
 const ERROR_BADGE_DURATION = 4000;
+
+// ========================================================
+// テレメトリ定数
+// ========================================================
+
+/**
+ * テレメトリ送信先 (Cloudflare Worker プロキシ)
+ * api_secret は Worker の環境変数に保管するため、このファイルには含まれない。
+ */
+const TELEMETRY_ENDPOINT = "https://telemetry.takumi0213.com";
+
+/** 送信を許可するイベント名 */
+const ALLOWED_EVENTS  = new Set(["conversion_result", "conversion_error"]);
+/** 送信を許可する format 値 */
+const ALLOWED_FORMATS = new Set(["jpg", "png", "webp"]);
+/** 送信を許可する result 値 */
+const ALLOWED_RESULTS = new Set(["success", "fallback", "error"]);
+/** 送信を許可する reason 値 */
+const ALLOWED_REASONS = new Set([
+  "unsupported_scheme",
+  "execute_script_failed",
+  "content_script_error", // 仕様定義済み。現時点では送信パスなし（将来の拡張用）
+  "canvas_error",
+  "cors",
+  "download_failed",
+  "fallback_download_failed",
+  "unknown",
+]);
+/** テレメトリパラメータに含めてはいけないフィールド名 */
+const FORBIDDEN_KEYS = [
+  "url", "src", "srcUrl", "tab", "tabUrl", "filename",
+  "message", "errorMessage", "sessionId", "userId", "clientId",
+];
+
+// ========================================================
+// テレメトリ
+// ========================================================
+
+/**
+ * GA4 Measurement Protocol でイベントを非同期送信する。
+ * 送信失敗は完全無視する（機能優先）。
+ * 禁止データ（URL・ファイル名・識別子・任意文字列）は一切送信しない。
+ *
+ * @param {"conversion_result"|"conversion_error"} eventName
+ * @param {Object} params
+ * @param {string}  params.format             - "jpg" | "png" | "webp"
+ * @param {string} [params.result]            - "success" | "fallback" | "error"  (conversion_result のみ)
+ * @param {string} [params.reason]            - ALLOWED_REASONS のいずれか          (conversion_error のみ)
+ * @param {string}  params.extension_version  - manifest.json の version 文字列
+ */
+function sendTelemetry(eventName, params) {
+  // --- バリデーション ---
+
+  // イベント名
+  if (!ALLOWED_EVENTS.has(eventName)) return;
+
+  // params の型チェック（null/undefined/非オブジェクト/配列は弾く）
+  // telemetry/worker.js の同一チェックと同期すること
+  if (!params || typeof params !== "object" || Array.isArray(params)) return;
+
+  // 必須フィールドの存在確認
+  if (params.format === undefined || params.extension_version === undefined) return;
+
+  // format
+  if (!ALLOWED_FORMATS.has(params.format)) return;
+
+  // extension_version: セマンティックバージョン形式のみ許可（任意文字列ブロック）
+  if (!/^\d+\.\d+\.\d+$/.test(params.extension_version)) return;
+
+  // conversion_result 固有
+  if (eventName === "conversion_result") {
+    if (!ALLOWED_RESULTS.has(params.result)) return;
+  }
+
+  // conversion_error 固有
+  if (eventName === "conversion_error") {
+    if (!ALLOWED_REASONS.has(params.reason)) return;
+  }
+
+  // 禁止フィールドが含まれていないことを確認
+  for (const key of FORBIDDEN_KEYS) {
+    if (key in params) return;
+  }
+
+  // --- ペイロード構築（許可フィールドのみ）---
+  // Worker 側で client_id 等を付加するため、ここではイベント情報のみ組み立てる
+  const eventParams = { extension_version: params.extension_version };
+
+  if (eventName === "conversion_result") {
+    eventParams.format = params.format;
+    eventParams.result = params.result;
+  } else if (eventName === "conversion_error") {
+    eventParams.format = params.format;
+    eventParams.reason = params.reason;
+  }
+
+  // --- 非同期送信（try-catch で本処理に影響させない）---
+  try {
+    fetch(TELEMETRY_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ eventName, params: eventParams }),
+      keepalive: true, // Service Worker 終了後も送信を完了させる
+    }).catch(() => {
+      // 送信失敗は完全無視
+    });
+  } catch {
+    // fetch 自体の例外も完全無視
+  }
+}
+
+/**
+ * manifest.json から拡張機能バージョンを取得する。
+ * @returns {string}
+ */
+function getExtensionVersion() {
+  return chrome.runtime.getManifest().version;
+}
 
 // ========================================================
 // 処理キュー（連続操作の競合回避）
@@ -120,14 +238,10 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
  */
 function menuIdToFormat(menuItemId) {
   switch (menuItemId) {
-    case MENU_IDS.JPG:
-      return "jpg";
-    case MENU_IDS.PNG:
-      return "png";
-    case MENU_IDS.WEBP:
-      return "webp";
-    default:
-      return null;
+    case MENU_IDS.JPG:  return "jpg";
+    case MENU_IDS.PNG:  return "png";
+    case MENU_IDS.WEBP: return "webp";
+    default:            return null;
   }
 }
 
@@ -142,15 +256,18 @@ function menuIdToFormat(menuItemId) {
  * @param {string} formatKey - "jpg" | "png" | "webp"
  */
 async function handleImageSave(info, tab, formatKey) {
-  const srcUrl = info.srcUrl;
+  const srcUrl  = info.srcUrl;
+  const version = getExtensionVersion();
 
   // URLスキーム検証
   if (!isAllowedScheme(srcUrl)) {
     showError("このURLスキームはサポートされていません。");
+    sendTelemetry("conversion_result", { format: formatKey, result: "error",    extension_version: version });
+    sendTelemetry("conversion_error",  { format: formatKey, reason: "unsupported_scheme", extension_version: version });
     return;
   }
 
-  const config = FORMAT_CONFIG[formatKey];
+  const config   = FORMAT_CONFIG[formatKey];
   const filename = buildFilename(srcUrl, config.ext);
 
   // chrome-extension://, chrome://, edge://, about: 等ではスクリプト注入不可
@@ -158,46 +275,134 @@ async function handleImageSave(info, tab, formatKey) {
   const tabUrl = tab.url || "";
   if (/^(chrome|edge|about|devtools)/i.test(tabUrl)) {
     try {
-      await downloadOriginal(srcUrl, filename);
-    } catch {
-      showError("画像の保存に失敗しました。");
+      const downloadId = await downloadOriginal(srcUrl, filename);
+      // キャンセル時（downloadId === undefined）はテレメトリ送信をスキップ
+      if (downloadId !== undefined) {
+        sendTelemetry("conversion_result", { format: formatKey, result: "fallback", extension_version: version });
+      }
+    } catch (err) {
+      if (err instanceof BlobDownloadError) {
+        showError("この画像は直接ダウンロードできません。");
+      } else {
+        showError("画像の保存に失敗しました。");
+      }
+      sendTelemetry("conversion_result", { format: formatKey, result: "error",    extension_version: version });
+      sendTelemetry("conversion_error",  { format: formatKey, reason: "fallback_download_failed", extension_version: version });
     }
     return;
   }
 
   try {
     // content script でキャンバス変換を試みる（デフォルトの ISOLATED world で実行）
-    const results = await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      func: contentScriptConvert,
-      args: [srcUrl, config.mime],
-    });
+    let results;
+    try {
+      results = await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: contentScriptConvert,
+        args: [srcUrl, config.mime],
+      });
+    } catch (execErr) {
+      console.error("[かんたん画像変換] executeScript failed:", execErr);
+      // フォールバック: 元画像をそのままダウンロード
+      try {
+        const downloadId = await downloadOriginal(srcUrl, filename);
+        // キャンセル時（downloadId === undefined）はテレメトリ送信をスキップ
+        if (downloadId !== undefined) {
+          sendTelemetry("conversion_result", { format: formatKey, result: "fallback", extension_version: version });
+          // スクリプト注入が根本原因
+          sendTelemetry("conversion_error",  { format: formatKey, reason: "execute_script_failed", extension_version: version });
+        }
+      } catch (err) {
+        if (err instanceof BlobDownloadError) {
+          showError("この画像は直接ダウンロードできません。");
+        } else {
+          showError("画像の保存に失敗しました。");
+        }
+        sendTelemetry("conversion_result", { format: formatKey, result: "error",    extension_version: version });
+        // 根本原因（スクリプト注入失敗）と直接原因（フォールバックDL失敗）を両方送信
+        sendTelemetry("conversion_error",  { format: formatKey, reason: "execute_script_failed",    extension_version: version });
+        sendTelemetry("conversion_error",  { format: formatKey, reason: "fallback_download_failed", extension_version: version });
+      }
+      return;
+    }
 
     const result = results?.[0]?.result;
 
     if (result && result.dataUrl) {
       // 変換成功 → data URL でダウンロード
-      await downloadFile(result.dataUrl, filename);
+      try {
+        const downloadId = await downloadFile(result.dataUrl, filename);
+        // キャンセル時（downloadId === undefined）はテレメトリ送信をスキップ
+        if (downloadId !== undefined) {
+          sendTelemetry("conversion_result", { format: formatKey, result: "success", extension_version: version });
+        }
+      } catch {
+        showError("画像の保存に失敗しました。");
+        sendTelemetry("conversion_result", { format: formatKey, result: "error",  extension_version: version });
+        sendTelemetry("conversion_error",  { format: formatKey, reason: "download_failed", extension_version: version });
+      }
     } else if (result && result.skipConversion) {
       // アニメーション画像 or SVG → 元画像をそのままダウンロード
-      await downloadOriginal(srcUrl, buildFilename(srcUrl, getOriginalExt(srcUrl)));
+      try {
+        const downloadId = await downloadOriginal(srcUrl, buildFilename(srcUrl, getOriginalExt(srcUrl)));
+        // キャンセル時（downloadId === undefined）はテレメトリ送信をスキップ
+        if (downloadId !== undefined) {
+          sendTelemetry("conversion_result", { format: formatKey, result: "fallback", extension_version: version });
+        }
+      } catch (err) {
+        // blob: URL の場合は専用メッセージを表示
+        if (err instanceof BlobDownloadError) {
+          showError("この画像は直接ダウンロードできません。");
+        } else {
+          showError("画像の保存に失敗しました。");
+        }
+        sendTelemetry("conversion_result", { format: formatKey, result: "error",    extension_version: version });
+        sendTelemetry("conversion_error",  { format: formatKey, reason: "fallback_download_failed", extension_version: version });
+      }
     } else {
       // 変換失敗（CORS、Canvas エラー等）→ フォールバック: 元画像をそのままダウンロード
-      if (result && result.error) {
-        console.warn("[かんたん画像変換] Content script error:", result.error);
+      const csError = result?.error;
+
+      // reason の判定（確実な場合のみ分類、曖昧な場合は unknown）
+      // ※エラーメッセージ全文は送信しない
+      let reason = "unknown";
+      if (csError) {
+        const msg = String(csError).toLowerCase();
+        if (msg.includes("cors") || msg.includes("cross-origin") || msg.includes("opaque")) {
+          reason = "cors";
+        } else if (msg.includes("canvas") || msg.includes("context")) {
+          reason = "canvas_error";
+        }
+        console.warn("[かんたん画像変換] Content script error (classified as:", reason, ")");
       }
+
       console.warn("[かんたん画像変換] Conversion failed, falling back to original download.");
-      await downloadOriginal(srcUrl, filename);
+      try {
+        const downloadId = await downloadOriginal(srcUrl, filename);
+        // キャンセル時（downloadId === undefined）はテレメトリ送信をスキップ
+        if (downloadId !== undefined) {
+          sendTelemetry("conversion_result", { format: formatKey, result: "fallback", extension_version: version });
+          // csError がある場合は conversion_error を送信する。
+          // 分類できた場合は具体的な reason、できなかった場合は "unknown" を送る（エラーがあった事実自体が有用）
+          if (csError) {
+            sendTelemetry("conversion_error", { format: formatKey, reason, extension_version: version });
+          }
+        }
+      } catch (err) {
+        if (err instanceof BlobDownloadError) {
+          showError("この画像は直接ダウンロードできません。");
+        } else {
+          showError("画像の保存に失敗しました。");
+        }
+        sendTelemetry("conversion_result", { format: formatKey, result: "error",    extension_version: version });
+        sendTelemetry("conversion_error",  { format: formatKey, reason: "fallback_download_failed", extension_version: version });
+      }
     }
   } catch (err) {
-    console.error("[かんたん画像変換] executeScript failed:", err);
-    // フォールバック: 元画像をそのままダウンロード
-    try {
-      await downloadOriginal(srcUrl, filename);
-    } catch (dlErr) {
-      console.error("[かんたん画像変換] Fallback download also failed:", dlErr);
-      showError("画像の保存に失敗しました。");
-    }
+    console.error("[かんたん画像変換] Unexpected error:", err);
+    showError("画像の保存に失敗しました。");
+    sendTelemetry("conversion_result", { format: formatKey, result: "error",  extension_version: version });
+    // 予期しない例外のため原因が特定できない。conversion_error は送信しない。
   }
 }
 
@@ -249,8 +454,8 @@ async function contentScriptConvert(srcUrl, targetMime) {
         if (frameCount >= 2) return true;
         if (i + 9 > data.length) return false;
         const imgPacked = data[i + 8];
-        const hasLct = (imgPacked >> 7) & 1;
-        const lctSize = imgPacked & 0x07;
+        const hasLct    = (imgPacked >> 7) & 1;
+        const lctSize   = imgPacked & 0x07;
         i += 9;
         if (hasLct) {
           i += 3 * (1 << (lctSize + 1));
@@ -290,12 +495,13 @@ async function contentScriptConvert(srcUrl, targetMime) {
   function isAnimatedWebp(data) {
     if (data.length < 12) return false;
     const riff = String.fromCharCode(data[0], data[1], data[2], data[3]);
-    const webp = String.fromCharCode(data[8], data[9], data[10], data[11]);
+    const webp  = String.fromCharCode(data[8], data[9], data[10], data[11]);
     if (riff !== "RIFF" || webp !== "WEBP") return false;
 
     let i = 12;
     while (i + 8 <= data.length) {
-      const chunkId = String.fromCharCode(data[i], data[i + 1], data[i + 2], data[i + 3]);
+      const chunkId =
+        String.fromCharCode(data[i], data[i + 1], data[i + 2], data[i + 3]);
       const chunkSize =
         (data[i + 4] | (data[i + 5] << 8) | (data[i + 6] << 16) | (data[i + 7] << 24)) >>> 0;
 
@@ -328,7 +534,7 @@ async function contentScriptConvert(srcUrl, targetMime) {
       // 見つからない場合は新規作成（data URI, blob URL, または検索ヒットなし）
       const img = new Image();
       img.crossOrigin = "anonymous";
-      img.onload = () => resolve(img);
+      img.onload  = () => resolve(img);
       img.onerror = () => reject(new Error("Image load failed"));
       img.src = url;
     });
@@ -393,7 +599,7 @@ async function contentScriptConvert(srcUrl, targetMime) {
     // Blob → data URL
     const dataUrl = await new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
+      reader.onload  = () => resolve(reader.result);
       reader.onerror = () => reject(new Error("FileReader failed"));
       reader.readAsDataURL(convertedBlob);
     });
@@ -407,6 +613,17 @@ async function contentScriptConvert(srcUrl, targetMime) {
 // ========================================================
 // ダウンロード
 // ========================================================
+
+/**
+ * blob: URL を直接ダウンロードできない場合にスローする専用エラー。
+ * 呼び出し元でこのクラスを判定し、ユーザー向けメッセージを出し分ける。
+ */
+class BlobDownloadError extends Error {
+  constructor() {
+    super("blob URL cannot be downloaded directly");
+    this.name = "BlobDownloadError";
+  }
+}
 
 /**
  * data URL をダウンロードする（名前を付けて保存ダイアログを表示）。
@@ -437,10 +654,11 @@ async function downloadFile(dataUrl, filename) {
  * @param {string} filename
  */
 async function downloadOriginal(srcUrl, filename) {
-  // blob: は chrome.downloads.download で直接使えない
+  // blob: は chrome.downloads.download で直接使えない。
+  // showError は呼び出し元の catch で行うため、ここでは例外のみスローする。
+  // BlobDownloadError を使うことで呼び出し元がメッセージを出し分けられる。
   if (srcUrl.startsWith("blob:")) {
-    showError("この画像は直接ダウンロードできません。");
-    return;
+    throw new BlobDownloadError();
   }
 
   return new Promise((resolve, reject) => {
@@ -556,12 +774,12 @@ function sanitizeFilename(filename) {
  */
 function generateDatetimeFilename() {
   const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, "0");
-  const d = String(now.getDate()).padStart(2, "0");
-  const h = String(now.getHours()).padStart(2, "0");
+  const y   = now.getFullYear();
+  const m   = String(now.getMonth() + 1).padStart(2, "0");
+  const d   = String(now.getDate()).padStart(2, "0");
+  const h   = String(now.getHours()).padStart(2, "0");
   const min = String(now.getMinutes()).padStart(2, "0");
-  const s = String(now.getSeconds()).padStart(2, "0");
+  const s   = String(now.getSeconds()).padStart(2, "0");
   return `${y}${m}${d}_${h}${min}${s}`;
 }
 

@@ -21,23 +21,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>プライバシーポリシー — かんたん画像変換</title>
-  <meta name="description" content="かんたん画像変換のプライバシーポリシー。本拡張機能はユーザーデータを一切収集しません。">
+  <meta name="description" content="かんたん画像変換のプライバシーポリシー。品質監視目的の匿名メトリクスのみを収集します。">
   <!-- Favicon -->
   <link rel="icon" href="./favicon.ico">
   <!-- Canonical -->
-  <link rel="canonical" href="https://takumi0213.github.io/kantan-image-converter/privacy.html">
+  <link rel="canonical" href="https://img-convert.takumi0213.com/privacy.html">
   <!-- OGP -->
   <meta property="og:title" content="プライバシーポリシー — かんたん画像変換">
-  <meta property="og:description" content="かんたん画像変換のプライバシーポリシー。本拡張機能はユーザーデータを一切収集しません。">
-  <meta property="og:image" content="https://takumi0213.github.io/kantan-image-converter/ogp.png">
-  <meta property="og:url" content="https://takumi0213.github.io/kantan-image-converter/privacy.html">
+  <meta property="og:description" content="かんたん画像変換のプライバシーポリシー。品質監視目的の匿名メトリクスのみを収集します。">
+  <meta property="og:image" content="https://img-convert.takumi0213.com/ogp.png">
+  <meta property="og:url" content="https://img-convert.takumi0213.com/privacy.html">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="ja_JP">
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="プライバシーポリシー — かんたん画像変換">
-  <meta name="twitter:description" content="かんたん画像変換のプライバシーポリシー。本拡張機能はユーザーデータを一切収集しません。">
-  <meta name="twitter:image" content="https://takumi0213.github.io/kantan-image-converter/ogp.png">
+  <meta name="twitter:description" content="かんたん画像変換のプライバシーポリシー。品質監視目的の匿名メトリクスのみを収集します。">
+  <meta name="twitter:image" content="https://img-convert.takumi0213.com/ogp.png">
   <!-- Theme Color -->
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
@@ -246,7 +246,7 @@
       <span>プライバシーポリシー</span>
     </div>
     <h1>プライバシーポリシー</h1>
-    <p class="page-header-meta">最終更新: 2026年3月</p>
+    <p class="page-header-meta">最終更新: 2026年4月（品質メトリクス追加）</p>
   </div>
 </div>
 
@@ -263,28 +263,90 @@
         </svg>
         要約
       </div>
-      <p>本拡張機能は、ユーザーのデータを一切収集しません。収集したデータを第三者サーバーへ送信することもありません。</p>
-      <p>画像の変換処理はブラウザ内で完結します。変換対象の画像URL以外への通信は行わず、開発者のサーバーへのアクセスは一切ありません。</p>
+      <p>本拡張機能は、変換処理の品質監視を目的として、匿名の品質メトリクス（変換結果・エラー種別・拡張機能バージョン）を Google Analytics 4 に送信します。</p>
+      <p>URL・ファイル名・エラーメッセージ・ユーザー識別子などの個人情報は送信しません。収集対象・非収集対象の詳細は下記をご確認ください。</p>
     </div>
 
     <div class="policy-section">
       <h2>収集する情報</h2>
       <p>
-        かんたん画像変換は、いかなる個人情報・使用状況・画像データも収集しません。
-        分析ツール、トラッキング、クラッシュレポートなどの仕組みは一切導入していません。
+        かんたん画像変換は、変換処理の品質監視のみを目的として、以下の匿名メトリクスを
+        Cloudflare Worker プロキシ経由で Google Analytics 4（Measurement Protocol）へ送信します。
+        <code class="inline-code">api_secret</code> は拡張機能のソースコードには含まれず、Worker の環境変数に保管しています。
       </p>
+      <table class="permission-table">
+        <thead>
+          <tr>
+            <th scope="col">イベント</th>
+            <th scope="col">送信条件</th>
+            <th scope="col">パラメータ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code class="inline-code">conversion_result</code></td>
+            <td>変換完了時（成功・フォールバック・失敗）※保存ダイアログをキャンセルした場合は送信しない</td>
+            <td><code class="inline-code">format</code>（jpg/png/webp）、<code class="inline-code">result</code>（success/fallback/error）、<code class="inline-code">extension_version</code></td>
+          </tr>
+          <tr>
+            <td><code class="inline-code">conversion_error</code></td>
+            <td>エラー発生時（原因が特定できる場合のみ）</td>
+            <td><code class="inline-code">format</code>、<code class="inline-code">reason</code>（エラー分類）、<code class="inline-code">extension_version</code></td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        送信時に付与する <code class="inline-code">client_id</code> はリクエストごとに生成される乱数です。固定IDは使用せず、ユーザーの継続的な追跡はできません。
+      </p>
+    </div>
+
+    <div class="policy-section">
+      <h2>収集しない情報</h2>
+      <p>以下の情報は収集対象外であり、いかなる形でも送信しません。</p>
+      <ul style="margin: 0; padding-left: 1.5em; line-height: 2;">
+        <li>画像のURL・ページのURL</li>
+        <li>ファイル名</li>
+        <li>エラーメッセージの全文・任意文字列</li>
+        <li>ユーザー識別子・セッションID</li>
+        <li>個人情報・使用状況・画像データ</li>
+      </ul>
+      <p>上記以外の情報が誤って含まれないよう、送信前に内容を検査しています。</p>
     </div>
 
     <div class="policy-section">
       <h2>外部通信</h2>
       <p>
-        画像の変換処理はすべてブラウザ内（OffscreenCanvas）で完結します。
-        変換したデータや個人情報が開発者のサーバーへ送信されることは一切ありません。
+        本拡張機能は以下の外部エンドポイントと通信します。
+      </p>
+      <table class="permission-table">
+        <thead>
+          <tr>
+            <th scope="col">送信先</th>
+            <th scope="col">目的</th>
+            <th scope="col">送信内容</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code class="inline-code">*.workers.dev</code>（Cloudflare Worker）</td>
+            <td>変換処理の品質監視（テレメトリプロキシ）</td>
+            <td>変換結果・エラー分類・バージョン番号のみ</td>
+          </tr>
+          <tr>
+            <td><code class="inline-code">www.google-analytics.com</code>（Google Analytics 4）</td>
+            <td>品質メトリクスの記録（Worker から転送）</td>
+            <td>同上（Worker が転送。拡張機能からは直接通信しない）</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        画像変換処理自体はすべてブラウザ内（OffscreenCanvas）で完結します。
+        変換した画像データが外部へ送信されることはありません。
       </p>
       <p>
-        なお、変換処理の一部（アニメーション画像の判定）では、変換対象の画像URLに対してブラウザからHTTPリクエストを行うことがあります。
-        これは変換元の画像を提供しているサーバーへのアクセスであり、第三者への情報送信ではありません。
-        また、CORSポリシーにより取得できない場合は判定をスキップして変換処理に移行します。
+        また、アニメーション画像かどうかを判定するため、変換対象の画像を一時的に読み込むことがあります。
+        これは変換元画像を提供しているサーバーへのアクセスであり、第三者への情報送信ではありません。
+        画像の読み込みに失敗した場合は判定をスキップして変換処理に移行します。
       </p>
     </div>
 
@@ -326,8 +388,9 @@
     <div class="policy-section">
       <h2>第三者への情報提供</h2>
       <p>
-        収集するデータが存在しないため、第三者に提供する情報はありません。
-        広告ネットワーク、アナリティクスサービス、その他いかなる第三者とも情報を共有しません。
+        品質メトリクスは Google LLC（Google Analytics 4）に送信されます。
+        送信内容は変換結果・エラー分類・バージョン番号のみであり、個人を特定できる情報は含まれません。
+        広告ネットワーク・その他の第三者サービスとは情報を共有しません。
       </p>
     </div>
 

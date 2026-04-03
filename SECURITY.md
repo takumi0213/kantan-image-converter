@@ -37,8 +37,8 @@ GitHub の [Private Vulnerability Reporting](https://github.com/takumi0213/kanta
 
 ### データの安全性
 
-- すべての画像変換処理はブラウザ内で完結し、外部サーバーへの通信は一切行いません
-- 画像データがローカル環境の外に出ることはありません
+- すべての画像変換処理はブラウザ内で完結し、画像データが外部サーバーへ送信されることはありません
+- 変換処理の品質監視を目的として、匿名の品質メトリクス（変換結果・エラー分類・バージョン番号）を Cloudflare Worker プロキシ経由で Google Analytics 4 へ送信します。`api_secret` は拡張機能のソースコードに含まれず、Worker の環境変数に保管しています。URL・ファイル名・画像データ・ユーザー識別子は送信しません（詳細は [プライバシーポリシー](https://img-convert.takumi0213.com/privacy.html) を参照）
 - content script は isolated world で実行され、悪意あるページのJavaScriptからの干渉を防止します
 
 ### 入力の検証

@@ -24,7 +24,7 @@ document.getElementById("demoLink").addEventListener("click", (e) => {
  
 document.getElementById("websiteLink").addEventListener("click", (e) => {
   e.preventDefault();
-  chrome.tabs.create({ url: "https://takumi0213.github.io/kantan-image-converter/" });
+  chrome.tabs.create({ url: "https://img-convert.takumi0213.com/" });
   window.close();
 });
  
