@@ -69,9 +69,13 @@ export default {
       return new Response("Internal Server Error", { status: 500 });
     }
 
-    // Origin を chrome-extension:// に限定（第三者からの濫用を防止）
+    // Origin を chrome-extension:// に限定し、さらに拡張機能 ID を allowlist で照合
+    // ALLOWED_EXTENSION_ORIGIN 未設定時は chrome-extension:// スキーム一致のみで許可
     const origin = request.headers.get("Origin") ?? "";
     if (!origin.startsWith("chrome-extension://")) {
+      return new Response("Forbidden", { status: 403 });
+    }
+    if (env.ALLOWED_EXTENSION_ORIGIN && origin !== env.ALLOWED_EXTENSION_ORIGIN) {
       return new Response("Forbidden", { status: 403 });
     }
 
@@ -103,6 +107,10 @@ export default {
 
     // ── バリデーション（background.js の sendTelemetry と同一ロジック）──
     if (!ALLOWED_EVENTS.has(eventName)) {
+      return new Response("Bad Request", { status: 400, headers: corsHeaders(origin) });
+    }
+    // params の型チェック（非オブジェクトでは in 演算子が TypeError になるため必須）
+    if (!params || typeof params !== "object" || Array.isArray(params)) {
       return new Response("Bad Request", { status: 400, headers: corsHeaders(origin) });
     }
     if (params?.format === undefined || params?.extension_version === undefined) {
