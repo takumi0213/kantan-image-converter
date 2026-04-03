@@ -1,6 +1,6 @@
 # かんたん画像変換 テレメトリプロキシ - Cloudflare Worker デプロイ設定
 # セットアップ手順は別途ガイドを参照のこと。
-# シークレット（GA4_MEASUREMENT_ID / GA4_API_SECRET）は wrangler secret put で登録する。
+# シークレット（GA4_MEASUREMENT_ID / GA4_API_SECRET / ALLOWED_EXTENSION_ORIGIN）は wrangler secret put で登録する。
 # このファイルには機密情報を記載しないこと。
 # Workers Free プランで動作する。
 
