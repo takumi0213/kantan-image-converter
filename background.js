@@ -274,10 +274,17 @@ async function handleImageSave(info, tab, formatKey) {
   const tabUrl = tab.url || "";
   if (/^(chrome|edge|about|devtools)/i.test(tabUrl)) {
     try {
-      await downloadOriginal(srcUrl, filename);
-      sendTelemetry("conversion_result", { format: formatKey, result: "fallback", extension_version: version });
-    } catch {
-      showError("画像の保存に失敗しました。");
+      const downloadId = await downloadOriginal(srcUrl, filename);
+      // キャンセル時（downloadId === undefined）はテレメトリ送信をスキップ
+      if (downloadId !== undefined) {
+        sendTelemetry("conversion_result", { format: formatKey, result: "fallback", extension_version: version });
+      }
+    } catch (err) {
+      if (err instanceof BlobDownloadError) {
+        showError("この画像は直接ダウンロードできません。");
+      } else {
+        showError("画像の保存に失敗しました。");
+      }
       sendTelemetry("conversion_result", { format: formatKey, result: "error",    extension_version: version });
       sendTelemetry("conversion_error",  { format: formatKey, reason: "fallback_download_failed", extension_version: version });
     }
@@ -297,12 +304,19 @@ async function handleImageSave(info, tab, formatKey) {
       console.error("[かんたん画像変換] executeScript failed:", execErr);
       // フォールバック: 元画像をそのままダウンロード
       try {
-        await downloadOriginal(srcUrl, filename);
-        sendTelemetry("conversion_result", { format: formatKey, result: "fallback", extension_version: version });
-        // スクリプト注入が根本原因
-        sendTelemetry("conversion_error",  { format: formatKey, reason: "execute_script_failed", extension_version: version });
-      } catch {
-        showError("画像の保存に失敗しました。");
+        const downloadId = await downloadOriginal(srcUrl, filename);
+        // キャンセル時（downloadId === undefined）はテレメトリ送信をスキップ
+        if (downloadId !== undefined) {
+          sendTelemetry("conversion_result", { format: formatKey, result: "fallback", extension_version: version });
+          // スクリプト注入が根本原因
+          sendTelemetry("conversion_error",  { format: formatKey, reason: "execute_script_failed", extension_version: version });
+        }
+      } catch (err) {
+        if (err instanceof BlobDownloadError) {
+          showError("この画像は直接ダウンロードできません。");
+        } else {
+          showError("画像の保存に失敗しました。");
+        }
         sendTelemetry("conversion_result", { format: formatKey, result: "error",    extension_version: version });
         // 根本原因（スクリプト注入失敗）と直接原因（フォールバックDL失敗）を両方送信
         sendTelemetry("conversion_error",  { format: formatKey, reason: "execute_script_failed",    extension_version: version });
@@ -329,8 +343,11 @@ async function handleImageSave(info, tab, formatKey) {
     } else if (result && result.skipConversion) {
       // アニメーション画像 or SVG → 元画像をそのままダウンロード
       try {
-        await downloadOriginal(srcUrl, buildFilename(srcUrl, getOriginalExt(srcUrl)));
-        sendTelemetry("conversion_result", { format: formatKey, result: "fallback", extension_version: version });
+        const downloadId = await downloadOriginal(srcUrl, buildFilename(srcUrl, getOriginalExt(srcUrl)));
+        // キャンセル時（downloadId === undefined）はテレメトリ送信をスキップ
+        if (downloadId !== undefined) {
+          sendTelemetry("conversion_result", { format: formatKey, result: "fallback", extension_version: version });
+        }
       } catch (err) {
         // blob: URL の場合は専用メッセージを表示
         if (err instanceof BlobDownloadError) {
@@ -360,15 +377,22 @@ async function handleImageSave(info, tab, formatKey) {
 
       console.warn("[かんたん画像変換] Conversion failed, falling back to original download.");
       try {
-        await downloadOriginal(srcUrl, filename);
-        sendTelemetry("conversion_result", { format: formatKey, result: "fallback", extension_version: version });
-        // csError がある場合は conversion_error を送信する。
-        // 分類できた場合は具体的な reason、できなかった場合は "unknown" を送る（エラーがあった事実自体が有用）
-        if (csError) {
-          sendTelemetry("conversion_error", { format: formatKey, reason, extension_version: version });
+        const downloadId = await downloadOriginal(srcUrl, filename);
+        // キャンセル時（downloadId === undefined）はテレメトリ送信をスキップ
+        if (downloadId !== undefined) {
+          sendTelemetry("conversion_result", { format: formatKey, result: "fallback", extension_version: version });
+          // csError がある場合は conversion_error を送信する。
+          // 分類できた場合は具体的な reason、できなかった場合は "unknown" を送る（エラーがあった事実自体が有用）
+          if (csError) {
+            sendTelemetry("conversion_error", { format: formatKey, reason, extension_version: version });
+          }
         }
-      } catch {
-        showError("画像の保存に失敗しました。");
+      } catch (err) {
+        if (err instanceof BlobDownloadError) {
+          showError("この画像は直接ダウンロードできません。");
+        } else {
+          showError("画像の保存に失敗しました。");
+        }
         sendTelemetry("conversion_result", { format: formatKey, result: "error",    extension_version: version });
         sendTelemetry("conversion_error",  { format: formatKey, reason: "fallback_download_failed", extension_version: version });
       }
