@@ -149,8 +149,9 @@ export default {
     }
 
     const payload = {
-      // client_id は毎回の乱数とし、ユーザーの継続追跡を防ぐ
-      client_id: `ext_${Math.random().toString(36).slice(2, 10)}`,
+      // client_id は GA4 Measurement Protocol で一般的な「数値.タイムスタンプ」形式にする
+      // 毎回新しい値を生成し、ユーザーの継続追跡を防ぐ
+      client_id: `${crypto.getRandomValues(new Uint32Array(1))[0]}.${Date.now()}`,
       non_personalized_ads: true,
       events: [{ name: eventName, params: eventParams }],
     };
