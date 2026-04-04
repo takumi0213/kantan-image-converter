@@ -411,8 +411,8 @@
 
     /* ========== INSTALL ========== */
     .install-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      display: flex;
+      flex-direction: column;
       gap: 24px;
       margin-bottom: 32px;
     }
@@ -422,6 +422,7 @@
       border-radius: var(--radius);
       padding: 24px;
       background: var(--bg-subtle);
+      min-width: 0;
     }
 
     .install-card h3 {
@@ -436,6 +437,13 @@
       margin-bottom: 16px;
     }
 
+    .browser-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 24px;
+      list-style: none;
+    }
+
     .install-steps {
       list-style: none;
       display: flex;
@@ -443,15 +451,17 @@
       gap: 10px;
     }
 
-    .install-steps li {
+    .install-steps li,
+    .browser-list li {
       font-size: 13px;
       color: var(--text-mid);
       display: flex;
       gap: 10px;
-      align-items: flex-start;
+      align-items: center;
     }
 
-    .install-steps .n {
+    .install-steps .n,
+    .browser-list .n {
       width: 20px;
       height: 20px;
       background: var(--blue-light);
@@ -464,6 +474,12 @@
       font-weight: 700;
       flex-shrink: 0;
       font-family: "DM Mono", monospace;
+    }
+
+    .unsupported-n {
+      background: var(--bg-subtle);
+      color: var(--text-light);
+      border: 1px solid var(--border);
     }
 
     .attestation-box {
@@ -772,7 +788,6 @@
       .hero-inner { grid-template-columns: 1fr; }
       .hero-visual { display: none; }
       .features-grid { grid-template-columns: 1fr; }
-      .install-grid { grid-template-columns: 1fr; }
       section { padding: 56px 0; }
     }
   </style>
@@ -1042,13 +1057,13 @@
       <div class="install-card">
         <h3>対応ブラウザ</h3>
         <p class="note">Manifest V3 対応の Chromium 系ブラウザ</p>
-        <ol class="install-steps">
+        <ul class="browser-list">
           <li><span class="n">✓</span><span>Google Chrome</span></li>
           <li><span class="n">✓</span><span>Microsoft Edge</span></li>
           <li><span class="n">✓</span><span>Vivaldi</span></li>
           <li><span class="n">✓</span><span>Brave</span></li>
-          <li><span class="n">✗</span><span>Firefox（未対応）</span></li>
-        </ol>
+          <li><span class="n unsupported-n">✗</span><span>Firefox（未対応）</span></li>
+        </ul>
       </div>
     </div>
   </div>
