@@ -512,14 +512,14 @@
       gap: 0;
     }
 
-    details {
+    .faq-list details {
       border-top: 1px solid var(--border);
       padding: 20px 0;
     }
 
-    details:last-child { border-bottom: 1px solid var(--border); }
+    .faq-list details:last-child { border-bottom: 1px solid var(--border); }
 
-    summary {
+    .faq-list summary {
       font-size: 15px;
       font-weight: 700;
       cursor: pointer;
@@ -530,7 +530,7 @@
       gap: 16px;
     }
 
-    summary::-webkit-details-marker { display: none; }
+    .faq-list summary::-webkit-details-marker { display: none; }
 
     .summary-icon {
       width: 20px;
@@ -547,14 +547,63 @@
       transition: background .15s, color .15s;
     }
 
-    details[open] .summary-icon {
+    .faq-list details[open] .summary-icon {
       background: var(--blue);
       color: #fff;
       border-color: var(--blue);
     }
 
-    details[open] .summary-icon::after { content: "−"; }
-    details:not([open]) .summary-icon::after { content: "+"; }
+    .faq-list details[open] .summary-icon::after { content: "−"; }
+    .faq-list details:not([open]) .summary-icon::after { content: "+"; }
+
+    .install-details {
+      margin-top: 20px;
+    }
+
+    .install-details summary {
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--blue);
+      font-size: 0.875rem;
+    }
+
+    .install-details summary::-webkit-details-marker { display: none; }
+
+    .install-details summary .summary-icon {
+      width: 18px;
+      height: 18px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--text-mid);
+      font-size: 13px;
+      transition: background .15s, color .15s;
+    }
+
+    .install-details[open] summary .summary-icon {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+
+    .install-details[open] summary .summary-icon::after { content: "−"; }
+    .install-details:not([open]) summary .summary-icon::after { content: "+"; }
+
+    .install-details .install-steps {
+      margin-top: 12px;
+    }
+
+    .install-store-btn {
+      margin-top: 12px;
+    }
 
     .faq-answer {
       font-size: 14px;
@@ -958,17 +1007,20 @@
       <div class="install-card">
         <h3>Chrome Web Store からインストール</h3>
         <p class="note">通常の手順</p>
-        <div style="margin-top: 12px;">
-          <a href="https://chromewebstore.google.com/detail/%E3%81%8B%E3%82%93%E3%81%9F%E3%82%93%E7%94%BB%E5%83%8F%E5%A4%89%E6%8F%9B/lecilkeobjibofjaoadlelgfiipicdlo" class="btn btn-primary" style="display:inline-flex;">
+        <div class="install-store-btn">
+          <a href="https://chromewebstore.google.com/detail/%E3%81%8B%E3%82%93%E3%81%9F%E3%82%93%E7%94%BB%E5%83%8F%E5%A4%89%E6%8F%9B/lecilkeobjibofjaoadlelgfiipicdlo" class="btn btn-primary">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               <path d="M8 2v8M5 7l3 3 3-3M3 12h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
             Chrome Web Store でインストール
           </a>
         </div>
-        <details style="margin-top: 20px;">
-          <summary style="cursor:pointer; color:var(--blue); font-size:0.875rem;">手動インストール（GitHub Releases から）</summary>
-          <ol class="install-steps" style="margin-top: 12px;">
+        <details class="install-details">
+          <summary>
+            <span>手動インストール（GitHub Releases から）</span>
+            <span class="summary-icon" aria-hidden="true"></span>
+          </summary>
+          <ol class="install-steps">
             <li><span class="n">1</span><span><a href="https://github.com/takumi0213/kantan-image-converter/releases" style="color:var(--blue)">Releases</a> から最新の ZIP をダウンロード</span></li>
             <li><span class="n">2</span><span>ZIP を展開する</span></li>
             <li><span class="n">3</span><span>Chrome で <code>chrome://extensions</code> を開く</span></li>
