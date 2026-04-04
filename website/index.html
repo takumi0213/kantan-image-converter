@@ -475,6 +475,7 @@
       gap: 12px;
       align-items: flex-start;
       min-width: 0;
+      margin-top: 16px;
     }
 
     .attestation-box svg { flex-shrink: 0; margin-top: 2px; }
@@ -1027,6 +1028,15 @@
             <li><span class="n">4</span><span>「デベロッパーモード」を ON にする</span></li>
             <li><span class="n">5</span><span>「パッケージ化されていない拡張機能を読み込む」で展開したフォルダを選択</span></li>
           </ol>
+          <div class="attestation-box">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <path d="M9 2l1.5 4.5H15l-3.75 2.75L12.75 14 9 11.25 5.25 14l1.5-4.75L3 6.5h4.5L9 2z" stroke="#2563eb" stroke-width="1.5" stroke-linejoin="round"/>
+            </svg>
+            <div>
+              <p>手動インストール用の配布ZIPはGitHub Attestationで署名されています。以下のコマンドで公式CIからビルドされたことを検証できます。</p>
+              <code>gh attestation verify kantan-image-converter-vX.X.X.zip --owner takumi0213</code>
+            </div>
+          </div>
         </details>
       </div>
       <div class="install-card">
@@ -1039,15 +1049,6 @@
           <li><span class="n">✓</span><span>Brave</span></li>
           <li><span class="n">✗</span><span>Firefox（未対応）</span></li>
         </ol>
-      </div>
-    </div>
-    <div class="attestation-box">
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-        <path d="M9 2l1.5 4.5H15l-3.75 2.75L12.75 14 9 11.25 5.25 14l1.5-4.75L3 6.5h4.5L9 2z" stroke="#2563eb" stroke-width="1.5" stroke-linejoin="round"/>
-      </svg>
-      <div>
-        <p>配布ZIPはGitHub Attestationで署名されています。以下のコマンドで公式CIからビルドされたことを検証できます。</p>
-        <code>gh attestation verify kantan-image-converter-vX.X.X.zip --owner takumi0213</code>
       </div>
     </div>
   </div>
