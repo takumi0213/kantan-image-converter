@@ -30,4 +30,4 @@
 以下については対応していません。
 
 - Firefox・Safari など Chromium ベース以外のブラウザへの対応
-- Chrome Web Store 未掲載のため、ストア経由のサポートはありません
+- [Chrome Web Store のレビュー](https://chromewebstore.google.com/detail/かんたん画像変換/lecilkeobjibofjaoadlelgfiipicdlo) への返信はしていません。バグ報告・機能提案は GitHub Issues をご利用ください

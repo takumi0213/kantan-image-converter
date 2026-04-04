@@ -64,7 +64,7 @@
     </div>
     <ul class="footer-links">
       <li><a href="https://github.com/takumi0213/kantan-image-converter">GitHub</a></li>
-      <li><a href="https://github.com/takumi0213/kantan-image-converter/releases">Releases</a></li>
+      <li><a href="https://chromewebstore.google.com/detail/%E3%81%8B%E3%82%93%E3%81%9F%E3%82%93%E7%94%BB%E5%83%8F%E5%A4%89%E6%8F%9B/lecilkeobjibofjaoadlelgfiipicdlo">Chrome Web Store</a></li>
       <li><a href="https://github.com/takumi0213/kantan-image-converter/blob/main/CONTRIBUTING.md">Contributing</a></li>
       <li><a href="https://github.com/takumi0213/kantan-image-converter/blob/main/CODE_OF_CONDUCT.md">Code of Conduct</a></li>
       <li><a href="https://github.com/takumi0213/kantan-image-converter/security/advisories/new">Security</a></li>

@@ -411,8 +411,8 @@
 
     /* ========== INSTALL ========== */
     .install-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      display: flex;
+      flex-direction: column;
       gap: 24px;
       margin-bottom: 32px;
     }
@@ -422,6 +422,7 @@
       border-radius: var(--radius);
       padding: 24px;
       background: var(--bg-subtle);
+      min-width: 0;
     }
 
     .install-card h3 {
@@ -436,6 +437,13 @@
       margin-bottom: 16px;
     }
 
+    .browser-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 24px;
+      list-style: none;
+    }
+
     .install-steps {
       list-style: none;
       display: flex;
@@ -443,15 +451,17 @@
       gap: 10px;
     }
 
-    .install-steps li {
+    .install-steps li,
+    .browser-list li {
       font-size: 13px;
       color: var(--text-mid);
       display: flex;
       gap: 10px;
-      align-items: flex-start;
+      align-items: center;
     }
 
-    .install-steps .n {
+    .install-steps .n,
+    .browser-list .n {
       width: 20px;
       height: 20px;
       background: var(--blue-light);
@@ -466,6 +476,12 @@
       font-family: "DM Mono", monospace;
     }
 
+    .unsupported-n {
+      background: var(--bg-subtle);
+      color: var(--text-light);
+      border: 1px solid var(--border);
+    }
+
     .attestation-box {
       background: var(--bg-subtle);
       border: 1px solid var(--border);
@@ -475,6 +491,7 @@
       gap: 12px;
       align-items: flex-start;
       min-width: 0;
+      margin-top: 16px;
     }
 
     .attestation-box svg { flex-shrink: 0; margin-top: 2px; }
@@ -512,14 +529,14 @@
       gap: 0;
     }
 
-    details {
+    .faq-list details {
       border-top: 1px solid var(--border);
       padding: 20px 0;
     }
 
-    details:last-child { border-bottom: 1px solid var(--border); }
+    .faq-list details:last-child { border-bottom: 1px solid var(--border); }
 
-    summary {
+    .faq-list summary {
       font-size: 15px;
       font-weight: 700;
       cursor: pointer;
@@ -530,7 +547,7 @@
       gap: 16px;
     }
 
-    summary::-webkit-details-marker { display: none; }
+    .faq-list summary::-webkit-details-marker { display: none; }
 
     .summary-icon {
       width: 20px;
@@ -547,14 +564,63 @@
       transition: background .15s, color .15s;
     }
 
-    details[open] .summary-icon {
+    .faq-list details[open] .summary-icon {
       background: var(--blue);
       color: #fff;
       border-color: var(--blue);
     }
 
-    details[open] .summary-icon::after { content: "−"; }
-    details:not([open]) .summary-icon::after { content: "+"; }
+    .faq-list details[open] .summary-icon::after { content: "−"; }
+    .faq-list details:not([open]) .summary-icon::after { content: "+"; }
+
+    .install-details {
+      margin-top: 20px;
+    }
+
+    .install-details summary {
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--blue);
+      font-size: 0.875rem;
+    }
+
+    .install-details summary::-webkit-details-marker { display: none; }
+
+    .install-details summary .summary-icon {
+      width: 18px;
+      height: 18px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--text-mid);
+      font-size: 13px;
+      transition: background .15s, color .15s;
+    }
+
+    .install-details[open] summary .summary-icon {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+
+    .install-details[open] summary .summary-icon::after { content: "−"; }
+    .install-details:not([open]) summary .summary-icon::after { content: "+"; }
+
+    .install-details .install-steps {
+      margin-top: 12px;
+    }
+
+    .install-store-btn {
+      margin-top: 12px;
+    }
 
     .faq-answer {
       font-size: 14px;
@@ -722,7 +788,6 @@
       .hero-inner { grid-template-columns: 1fr; }
       .hero-visual { display: none; }
       .features-grid { grid-template-columns: 1fr; }
-      .install-grid { grid-template-columns: 1fr; }
       section { padding: 56px 0; }
     }
   </style>
@@ -750,11 +815,11 @@
           画像の変換処理はすべてブラウザ内で完結します。
         </p>
         <div class="hero-actions">
-          <a href="https://github.com/takumi0213/kantan-image-converter/releases" class="btn btn-primary">
+          <a href="https://chromewebstore.google.com/detail/%E3%81%8B%E3%82%93%E3%81%9F%E3%82%93%E7%94%BB%E5%83%8F%E5%A4%89%E6%8F%9B/lecilkeobjibofjaoadlelgfiipicdlo" class="btn btn-primary">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               <path d="M8 2v8M5 7l3 3 3-3M3 12h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            ダウンロード
+            Chrome Web Store でインストール
           </a>
           <a href="https://github.com/takumi0213/kantan-image-converter" class="btn btn-secondary">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
@@ -953,38 +1018,52 @@
 <section id="install">
   <div class="container">
     <h2>インストール</h2>
-    <p class="section-lead">Chrome Web Store未掲載のため、手動でインストールします。</p>
+    <p class="section-lead">Chrome Web Store から無料でインストールできます。</p>
     <div class="install-grid">
       <div class="install-card">
-        <h3>ZIPファイルからインストール</h3>
+        <h3>Chrome Web Store からインストール</h3>
         <p class="note">通常の手順</p>
-        <ol class="install-steps">
-          <li><span class="n">1</span><span><a href="https://github.com/takumi0213/kantan-image-converter/releases" style="color:var(--blue)">Releases</a> から最新の ZIP をダウンロード</span></li>
-          <li><span class="n">2</span><span>ZIP を展開する</span></li>
-          <li><span class="n">3</span><span>Chrome で <code>chrome://extensions</code> を開く</span></li>
-          <li><span class="n">4</span><span>「デベロッパーモード」を ON にする</span></li>
-          <li><span class="n">5</span><span>「パッケージ化されていない拡張機能を読み込む」で展開したフォルダを選択</span></li>
-        </ol>
+        <div class="install-store-btn">
+          <a href="https://chromewebstore.google.com/detail/%E3%81%8B%E3%82%93%E3%81%9F%E3%82%93%E7%94%BB%E5%83%8F%E5%A4%89%E6%8F%9B/lecilkeobjibofjaoadlelgfiipicdlo" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M8 2v8M5 7l3 3 3-3M3 12h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Chrome Web Store でインストール
+          </a>
+        </div>
+        <details class="install-details">
+          <summary>
+            <span>手動インストール（GitHub Releases から）</span>
+            <span class="summary-icon" aria-hidden="true"></span>
+          </summary>
+          <ol class="install-steps">
+            <li><span class="n">1</span><span><a href="https://github.com/takumi0213/kantan-image-converter/releases" style="color:var(--blue)">Releases</a> から最新の ZIP をダウンロード</span></li>
+            <li><span class="n">2</span><span>ZIP を展開する</span></li>
+            <li><span class="n">3</span><span>Chrome で <code>chrome://extensions</code> を開く</span></li>
+            <li><span class="n">4</span><span>「デベロッパーモード」を ON にする</span></li>
+            <li><span class="n">5</span><span>「パッケージ化されていない拡張機能を読み込む」で展開したフォルダを選択</span></li>
+          </ol>
+          <div class="attestation-box">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <path d="M9 2l1.5 4.5H15l-3.75 2.75L12.75 14 9 11.25 5.25 14l1.5-4.75L3 6.5h4.5L9 2z" stroke="#2563eb" stroke-width="1.5" stroke-linejoin="round"/>
+            </svg>
+            <div>
+              <p>手動インストール用の配布ZIPはGitHub Attestationで署名されています。以下のコマンドで公式CIからビルドされたことを検証できます。</p>
+              <code>gh attestation verify kantan-image-converter-vX.X.X.zip --owner takumi0213</code>
+            </div>
+          </div>
+        </details>
       </div>
       <div class="install-card">
         <h3>対応ブラウザ</h3>
         <p class="note">Manifest V3 対応の Chromium 系ブラウザ</p>
-        <ol class="install-steps">
+        <ul class="browser-list">
           <li><span class="n">✓</span><span>Google Chrome</span></li>
           <li><span class="n">✓</span><span>Microsoft Edge</span></li>
           <li><span class="n">✓</span><span>Vivaldi</span></li>
           <li><span class="n">✓</span><span>Brave</span></li>
-          <li><span class="n">✗</span><span>Firefox（未対応）</span></li>
-        </ol>
-      </div>
-    </div>
-    <div class="attestation-box">
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-        <path d="M9 2l1.5 4.5H15l-3.75 2.75L12.75 14 9 11.25 5.25 14l1.5-4.75L3 6.5h4.5L9 2z" stroke="#2563eb" stroke-width="1.5" stroke-linejoin="round"/>
-      </svg>
-      <div>
-        <p>配布ZIPはGitHub Attestationで署名されています。以下のコマンドで公式CIからビルドされたことを検証できます。</p>
-        <code>gh attestation verify kantan-image-converter-vX.X.X.zip --owner takumi0213</code>
+          <li><span class="n unsupported-n">✗</span><span>Firefox（未対応）</span></li>
+        </ul>
       </div>
     </div>
   </div>
