@@ -509,6 +509,317 @@ group("telemetry: 全 reason 値が定義済み", () => {
 });
 
 // =====================================================
+// isAnimatedGif / isAnimatedWebp
+// background.js から再定義（純粋関数）
+// =====================================================
+
+function isAnimatedGif(data) {
+  if (data.length < 6) return false;
+  const sig = String.fromCharCode(data[0], data[1], data[2]);
+  if (sig !== "GIF") return false;
+
+  let frameCount = 0;
+  let i = 6;
+
+  if (i + 7 > data.length) return false;
+  const packed = data[i + 4];
+  const hasGct = (packed >> 7) & 1;
+  const gctSize = packed & 0x07;
+  i += 7;
+  if (hasGct) {
+    i += 3 * (1 << (gctSize + 1));
+  }
+
+  while (i < data.length) {
+    const blockType = data[i];
+    i++;
+
+    if (blockType === 0x2c) {
+      frameCount++;
+      if (frameCount >= 2) return true;
+      if (i + 9 > data.length) return false;
+      const imgPacked = data[i + 8];
+      const hasLct    = (imgPacked >> 7) & 1;
+      const lctSize   = imgPacked & 0x07;
+      i += 9;
+      if (hasLct) {
+        i += 3 * (1 << (lctSize + 1));
+      }
+      if (i >= data.length) return false;
+      i++;
+      while (i < data.length) {
+        const subBlockSize = data[i];
+        i++;
+        if (subBlockSize === 0) break;
+        i += subBlockSize;
+      }
+    } else if (blockType === 0x21) {
+      if (i >= data.length) return false;
+      i++;
+      while (i < data.length) {
+        const subBlockSize = data[i];
+        i++;
+        if (subBlockSize === 0) break;
+        i += subBlockSize;
+      }
+    } else if (blockType === 0x3b) {
+      break;
+    } else {
+      break;
+    }
+  }
+
+  return false;
+}
+
+function isAnimatedWebp(data) {
+  if (data.length < 12) return false;
+  const riff = String.fromCharCode(data[0], data[1], data[2], data[3]);
+  const webp  = String.fromCharCode(data[8], data[9], data[10], data[11]);
+  if (riff !== "RIFF" || webp !== "WEBP") return false;
+
+  let i = 12;
+  while (i + 8 <= data.length) {
+    const chunkId =
+      String.fromCharCode(data[i], data[i + 1], data[i + 2], data[i + 3]);
+    const chunkSize =
+      (data[i + 4] | (data[i + 5] << 8) | (data[i + 6] << 16) | (data[i + 7] << 24)) >>> 0;
+
+    if (chunkId === "ANIM") {
+      return true;
+    }
+
+    i += 8 + chunkSize;
+    if (chunkSize % 2 !== 0) i++;
+  }
+
+  return false;
+}
+
+// ---- GIF バイナリ構築ヘルパー ----
+// GIFヘッダー（GCTなし）: GIF89a + 論理スクリーン記述子（packed=0x00）
+function makeGifHeader() {
+  return [
+    0x47, 0x49, 0x46, 0x38, 0x39, 0x61, // GIF89a
+    0x01, 0x00,                           // 幅 1
+    0x01, 0x00,                           // 高さ 1
+    0x00,                                 // packed: GCT無し
+    0x00,                                 // 背景色インデックス
+    0x00,                                 // ピクセルアスペクト比
+  ];
+}
+
+// Image Descriptor ブロック（LCTなし、1x1）
+// フレームデータ（最小: LZW最小符号サイズ + 終端サブブロック）
+function makeGifFrame() {
+  return [
+    0x2c,             // Image Separator
+    0x00, 0x00,       // Left
+    0x00, 0x00,       // Top
+    0x01, 0x00,       // 幅 1
+    0x01, 0x00,       // 高さ 1
+    0x00,             // packed: LCT無し
+    0x02,             // LZW最小符号サイズ
+    0x02,             // サブブロックサイズ
+    0x4c, 0x01,       // 圧縮データ（最小）
+    0x00,             // サブブロック終端
+  ];
+}
+
+// GIF Trailer
+function makeGifTrailer() {
+  return [0x3b];
+}
+
+// ---- WebP バイナリ構築ヘルパー ----
+// RIFFヘッダー（12バイト）: RIFF + ファイルサイズ(LE) + WEBP
+function makeWebpHeader(fileSize) {
+  const sz = fileSize - 8;
+  return [
+    0x52, 0x49, 0x46, 0x46,                                         // RIFF
+    sz & 0xff, (sz >> 8) & 0xff, (sz >> 16) & 0xff, (sz >> 24) & 0xff, // サイズ
+    0x57, 0x45, 0x42, 0x50,                                         // WEBP
+  ];
+}
+
+// 任意のWebPチャンク（4文字ID + サイズ(LE) + ダミーデータ）
+function makeWebpChunk(id, size) {
+  const idBytes = id.split("").map((c) => c.charCodeAt(0));
+  const data = new Array(size).fill(0x00);
+  return [
+    ...idBytes,
+    size & 0xff, (size >> 8) & 0xff, (size >> 16) & 0xff, (size >> 24) & 0xff,
+    ...data,
+  ];
+}
+
+// =====================================================
+// テストケース: isAnimatedGif
+// =====================================================
+
+group("isAnimatedGif", () => {
+  // 空バッファ
+  assertFalse("空バッファ は false",
+    isAnimatedGif(new Uint8Array([])));
+
+  // 短すぎる（6バイト未満）
+  assertFalse("5バイトのバッファ は false",
+    isAnimatedGif(new Uint8Array([0x47, 0x49, 0x46, 0x38, 0x39])));
+
+  // GIF署名なし
+  assertFalse("GIF署名なし は false",
+    isAnimatedGif(new Uint8Array([0x50, 0x4e, 0x47, 0x00, 0x00, 0x00, 0x00])));
+
+  // GIF署名あるがヘッダー不足（< 13バイト）
+  assertFalse("GIF署名あるがヘッダーが 12バイトで切れている は false",
+    isAnimatedGif(new Uint8Array([
+      0x47, 0x49, 0x46, 0x38, 0x39, 0x61, // GIF89a
+      0x01, 0x00, 0x01, 0x00, 0x00, 0x00,  // 12バイトで終了
+    ])));
+
+  // 1フレームのみのGIF（静止画）
+  const gif1frame = new Uint8Array([
+    ...makeGifHeader(), ...makeGifFrame(), ...makeGifTrailer(),
+  ]);
+  assertFalse("1フレームの GIF は false", isAnimatedGif(gif1frame));
+
+  // 2フレームのGIF → アニメーション
+  const gif2frames = new Uint8Array([
+    ...makeGifHeader(), ...makeGifFrame(), ...makeGifFrame(), ...makeGifTrailer(),
+  ]);
+  assertTrue("2フレームの GIF は true", isAnimatedGif(gif2frames));
+
+  // 5フレームのGIF → アニメーション
+  const gif5frames = new Uint8Array([
+    ...makeGifHeader(),
+    ...makeGifFrame(), ...makeGifFrame(), ...makeGifFrame(),
+    ...makeGifFrame(), ...makeGifFrame(),
+    ...makeGifTrailer(),
+  ]);
+  assertTrue("5フレームの GIF は true", isAnimatedGif(gif5frames));
+
+  // GCT付き1フレーム（静止画）
+  // packed = 0x80: GCT有り、gctSize=0 → GCT = 3*(1<<1) = 6バイト
+  const gctHeader = [
+    0x47, 0x49, 0x46, 0x38, 0x39, 0x61, // GIF89a
+    0x01, 0x00, 0x01, 0x00,              // 幅・高さ
+    0x80,                                // packed: GCT有り、size=0
+    0x00, 0x00,                          // 背景色・アスペクト比
+    0xff, 0xff, 0xff, 0x00, 0x00, 0x00,  // GCT (6バイト: 2色 × RGB)
+  ];
+  const gifGct1frame = new Uint8Array([...gctHeader, ...makeGifFrame(), ...makeGifTrailer()]);
+  assertFalse("GCT付き 1フレームの GIF は false", isAnimatedGif(gifGct1frame));
+
+  // LCT付き2フレーム → アニメーション
+  // packed の bit7=1, size=0 → LCT = 6バイト
+  const frameWithLct = [
+    0x2c,
+    0x00, 0x00, 0x00, 0x00,             // Left, Top
+    0x01, 0x00, 0x01, 0x00,             // 幅・高さ
+    0x80,                               // packed: LCT有り size=0
+    0xff, 0xff, 0xff, 0x00, 0x00, 0x00, // LCT (6バイト)
+    0x02,                               // LZW最小符号サイズ
+    0x02, 0x4c, 0x01,                   // サブブロック
+    0x00,                               // 終端
+  ];
+  const gifLct2frames = new Uint8Array([
+    ...makeGifHeader(), ...frameWithLct, ...frameWithLct, ...makeGifTrailer(),
+  ]);
+  assertTrue("LCT付き 2フレームの GIF は true", isAnimatedGif(gifLct2frames));
+
+  // 1フレーム途中で切れたバッファ（Image Descriptorの9バイトが不足）
+  // 0x2c の後に 8バイトしかなく i+9 > length となるため false
+  const gifTruncated = new Uint8Array([
+    ...makeGifHeader(),
+    0x2c, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, // 0x2c + 8バイト（9バイト不足）
+  ]);
+  assertFalse("フレームヘッダーが途中で切れたバッファ は false", isAnimatedGif(gifTruncated));
+});
+
+// =====================================================
+// テストケース: isAnimatedWebp
+// =====================================================
+
+group("isAnimatedWebp", () => {
+  // 空バッファ
+  assertFalse("空バッファ は false",
+    isAnimatedWebp(new Uint8Array([])));
+
+  // 11バイト（12バイト未満）
+  assertFalse("11バイトのバッファ は false",
+    isAnimatedWebp(new Uint8Array(new Array(11).fill(0))));
+
+  // RIFF署名なし
+  const noRiff = new Uint8Array([
+    0x50, 0x4e, 0x47, 0x00, // RIFF ではない
+    0x00, 0x00, 0x00, 0x00,
+    0x57, 0x45, 0x42, 0x50, // WEBP
+  ]);
+  assertFalse("RIFF署名なし は false", isAnimatedWebp(noRiff));
+
+  // WEBP署名なし
+  const noWebp = new Uint8Array([
+    0x52, 0x49, 0x46, 0x46, // RIFF
+    0x00, 0x00, 0x00, 0x00,
+    0x4a, 0x50, 0x45, 0x47, // "JPEG"
+  ]);
+  assertFalse("WEBP署名なし は false", isAnimatedWebp(noWebp));
+
+  // RIFF/WEBP のみ（チャンクなし）= 12バイトちょうど
+  const webpHeaderOnly = new Uint8Array(makeWebpHeader(12));
+  assertFalse("RIFF/WEBP のみ（チャンクなし）は false", isAnimatedWebp(webpHeaderOnly));
+
+  // ANIMチャンクなし（VP8のみ）
+  const vp8Chunk = makeWebpChunk("VP8 ", 4);
+  const webpVp8Only = new Uint8Array([...makeWebpHeader(12 + 8 + 4), ...vp8Chunk]);
+  assertFalse("VP8チャンクのみの WebP は false", isAnimatedWebp(webpVp8Only));
+
+  // ANIMチャンクあり（先頭チャンク）
+  const animChunk = makeWebpChunk("ANIM", 6);
+  const webpAnim = new Uint8Array([...makeWebpHeader(12 + 8 + 6), ...animChunk]);
+  assertTrue("ANIMチャンクを含む WebP は true", isAnimatedWebp(webpAnim));
+
+  // ANIMチャンクが後続（VP8X → ANIM）
+  const vp8xChunk = makeWebpChunk("VP8X", 10);
+  const animChunk2 = makeWebpChunk("ANIM", 6);
+  const webpVp8xAnim = new Uint8Array([
+    ...makeWebpHeader(12 + (8 + 10) + (8 + 6)),
+    ...vp8xChunk, ...animChunk2,
+  ]);
+  assertTrue("VP8Xの後にANIMがある WebP は true", isAnimatedWebp(webpVp8xAnim));
+
+  // チャンクデータ内に "ANIM" 文字列があっても誤検知しない
+  // （チャンク境界外のデータは読まないことを確認）
+  const fakeChunkData = [
+    0x41, 0x4e, 0x49, 0x4d, // "ANIM" をデータとして含む
+    0x00, 0x00,
+  ];
+  const fakeVp8 = [
+    ...("VP8 ".split("").map((c) => c.charCodeAt(0))),
+    fakeChunkData.length & 0xff, 0x00, 0x00, 0x00,
+    ...fakeChunkData,
+  ];
+  const webpFakeAnim = new Uint8Array([
+    ...makeWebpHeader(12 + 8 + fakeChunkData.length), ...fakeVp8,
+  ]);
+  assertFalse("チャンクデータ内の ANIM 文字列では true にならない", isAnimatedWebp(webpFakeAnim));
+
+  // 奇数サイズチャンクのパディングを正しくスキップして次の ANIM を検出できる
+  const oddVp8 = [
+    ...("VP8 ".split("").map((c) => c.charCodeAt(0))),
+    0x05, 0x00, 0x00, 0x00,       // サイズ 5（奇数）
+    0x00, 0x00, 0x00, 0x00, 0x00, // データ 5バイト
+    0x00,                          // パディング 1バイト
+  ];
+  const animChunk3 = makeWebpChunk("ANIM", 6);
+  const webpOddPad = new Uint8Array([
+    ...makeWebpHeader(12 + oddVp8.length + animChunk3.length),
+    ...oddVp8, ...animChunk3,
+  ]);
+  assertTrue("奇数サイズチャンクの後にある ANIM を正しく検出できる", isAnimatedWebp(webpOddPad));
+});
+
+// =====================================================
 // 結果
 // =====================================================
 
