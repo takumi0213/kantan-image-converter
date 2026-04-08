@@ -102,6 +102,27 @@ for (const perm of REQUIRED_PERMISSIONS) {
 check("host_permissions が使用されていない",
   !manifest.host_permissions || manifest.host_permissions.length === 0);
 
+// Firefox 対応要件
+check("background.scripts が配列として存在する",
+  Array.isArray(manifest.background?.scripts) && manifest.background.scripts.length > 0);
+
+const scriptsPath = manifest.background?.scripts?.[0];
+if (typeof scriptsPath === "string" && scriptsPath.length > 0) {
+  const scriptsAbs = path.resolve(ROOT, scriptsPath);
+  const scriptsIsFile = (() => { try { return fs.statSync(scriptsAbs).isFile(); } catch { return false; } })();
+  check(`background.scripts[0] ファイルが存在する (${scriptsPath})`, scriptsIsFile);
+}
+check("background.scripts に background.js が含まれる",
+  Array.isArray(manifest.background?.scripts) && manifest.background.scripts.includes("background.js"));
+
+check("browser_specific_settings.gecko.id が存在する",
+  typeof manifest.browser_specific_settings?.gecko?.id === "string" &&
+  manifest.browser_specific_settings.gecko.id.length > 0);
+
+check("browser_specific_settings.gecko.strict_min_version が存在する",
+  typeof manifest.browser_specific_settings?.gecko?.strict_min_version === "string" &&
+  manifest.browser_specific_settings.gecko.strict_min_version.length > 0);
+
 // ---- テレメトリ定数の三重定義ドリフト検知 ----
 // background.js / telemetry/worker.js / tests/background.test.js で
 // 同一定数が三重定義されているため、CI で差分を自動検出する

@@ -807,7 +807,7 @@
             <circle cx="6" cy="6" r="5" fill="#2563eb"/>
             <path d="M4 6l1.5 1.5L8 4" stroke="#fff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          Chromium系拡張機能 — Manifest V3
+          Chrome・Firefox対応 — Manifest V3
         </div>
         <h1>右クリックで<br><em>かんたん</em>に<br>画像を変換・保存</h1>
         <p class="hero-desc">
@@ -1005,7 +1005,7 @@
         変換できないケース
       </div>
       <ul class="notice-list">
-        <li><strong>chrome:// など特殊ページ</strong> — ブラウザのセキュリティ制約によりスクリプト注入不可。元の形式のままダウンロードされます。</li>
+        <li><strong>chrome:// / moz-extension:// など特殊ページ</strong> — ブラウザのセキュリティ制約によりスクリプト注入不可。元の形式のままダウンロードされます。</li>
         <li><strong>アニメーションGIF / アニメーションWebP</strong> — 変換するとアニメーションが失われるため、元の形式のまま保存します。</li>
         <li><strong>SVG画像</strong> — 変換せず元の形式のまま保存します。</li>
         <li><strong>CORS制限がある画像</strong> — 変換に失敗した場合は元画像URLをそのままダウンロードします（フォールバック）。</li>
@@ -1018,7 +1018,7 @@
 <section id="install">
   <div class="container">
     <h2>インストール</h2>
-    <p class="section-lead">Chrome Web Store から無料でインストールできます。</p>
+    <p class="section-lead">Chrome Web Store または Firefox Add-ons から無料でインストールできます。</p>
     <div class="install-grid">
       <div class="install-card">
         <h3>Chrome Web Store からインストール</h3>
@@ -1055,14 +1055,30 @@
         </details>
       </div>
       <div class="install-card">
+        <h3>Firefox Add-ons（Coming Soon）</h3>
+        <p class="note">Firefox 128 以上で対応</p>
+        <p style="font-size:14px; color:var(--text-muted); margin-bottom:0;">Firefox Add-ons（AMO）への掲載準備中です。それまでは GitHub Releases から手動インストールをご利用ください。</p>
+        <details class="install-details" style="margin-top:12px;">
+          <summary>
+            <span>手動インストール（Firefox）</span>
+            <span class="summary-icon" aria-hidden="true"></span>
+          </summary>
+          <ol class="install-steps">
+            <li><span class="n">1</span><span><a href="https://github.com/takumi0213/kantan-image-converter/releases" style="color:var(--blue)">Releases</a> から最新の ZIP をダウンロードして展開</span></li>
+            <li><span class="n">2</span><span>Firefox で <code>about:debugging#/runtime/this-firefox</code> を開く</span></li>
+            <li><span class="n">3</span><span>「一時的な拡張機能を読み込む」から展開したフォルダ内の <code>manifest.json</code> を選択</span></li>
+          </ol>
+        </details>
+      </div>
+      <div class="install-card">
         <h3>対応ブラウザ</h3>
-        <p class="note">Manifest V3 対応の Chromium 系ブラウザ</p>
+        <p class="note">Manifest V3 対応ブラウザ</p>
         <ul class="browser-list">
           <li><span class="n">✓</span><span>Google Chrome</span></li>
           <li><span class="n">✓</span><span>Microsoft Edge</span></li>
+          <li><span class="n">✓</span><span>Mozilla Firefox 128+</span></li>
           <li><span class="n">✓</span><span>Vivaldi</span></li>
           <li><span class="n">✓</span><span>Brave</span></li>
-          <li><span class="n unsupported-n">✗</span><span>Firefox（未対応）</span></li>
         </ul>
       </div>
     </div>
@@ -1143,11 +1159,11 @@
     <div class="faq-list">
       <details>
         <summary>
-          <span>chrome:// や拡張機能ページで変換できないのはなぜですか？</span>
+          <span>chrome:// や moz-extension:// など拡張機能ページで変換できないのはなぜですか？</span>
           <span class="summary-icon"></span>
         </summary>
         <div class="faq-answer">
-          <code>chrome://</code>、<code>chrome-extension://</code>、<code>edge://</code> などの特殊なページでは、Chromiumのセキュリティ制約によりスクリプトを注入できません。そのため変換は行われず、元の形式のままダウンロードされます。通常のWebページ（<code>https://</code>）では正常に変換できます。
+          <code>chrome://</code>、<code>chrome-extension://</code>、<code>moz-extension://</code>、<code>edge://</code> などの特殊なページでは、ブラウザのセキュリティ制約によりスクリプトを注入できません。そのため変換は行われず、元の形式のままダウンロードされます。通常のWebページ（<code>https://</code>）では正常に変換できます。
         </div>
       </details>
       <details>
@@ -1192,7 +1208,7 @@
           <span class="summary-icon"></span>
         </summary>
         <div class="faq-answer">
-          現在は対応していません。本拡張機能はChromium系ブラウザ（Manifest V3）向けに設計されており、FirefoxのWebExtensions APIとは一部仕様が異なるため、そのままでは動作しません。
+          Firefox 128 以上に対応しています。Firefox Add-ons（AMO）への掲載準備中のため、現在は GitHub Releases からの手動インストールをご利用ください。
         </div>
       </details>
     </div>

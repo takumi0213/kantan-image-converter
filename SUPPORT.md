@@ -29,5 +29,5 @@
 
 以下については対応していません。
 
-- Firefox・Safari など Chromium ベース以外のブラウザへの対応
+- Safari など未対応ブラウザへの対応
 - [Chrome Web Store のレビュー](https://chromewebstore.google.com/detail/lecilkeobjibofjaoadlelgfiipicdlo) への返信はしていません。バグ報告・機能提案は GitHub Issues をご利用ください

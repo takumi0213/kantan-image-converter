@@ -125,6 +125,17 @@ function buildFilename(srcUrl, ext) {
   return baseName + ext;
 }
 
+function dataUrlToBlob(dataUrl) {
+  const [header, base64] = dataUrl.split(",");
+  const mime = header.match(/:(.*?);/)[1];
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return new Blob([bytes], { type: mime });
+}
+
 // =====================================================
 // テストランナー（依存ゼロ）
 // =====================================================
@@ -817,6 +828,30 @@ group("isAnimatedWebp", () => {
     ...oddVp8, ...animChunk3,
   ]);
   assertTrue("奇数サイズチャンクの後にある ANIM を正しく検出できる", isAnimatedWebp(webpOddPad));
+});
+
+// =====================================================
+// dataUrlToBlob
+// =====================================================
+
+group("dataUrlToBlob", () => {
+  // 1x1 pixel PNG (base64)
+  const pngDataUrl = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
+  const pngBlob = dataUrlToBlob(pngDataUrl);
+  assert("PNG: MIME タイプが一致する",   pngBlob.type, "image/png");
+  assertTrue("PNG: サイズが正の値",       pngBlob.size > 0);
+
+  // 1x1 pixel JPEG (base64)
+  const jpegDataUrl = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8AJQAB/9k=";
+  const jpegBlob = dataUrlToBlob(jpegDataUrl);
+  assert("JPEG: MIME タイプが一致する",  jpegBlob.type, "image/jpeg");
+  assertTrue("JPEG: サイズが正の値",      jpegBlob.size > 0);
+
+  // 1x1 pixel WebP (base64) — VP8 lossless 1x1 transparent pixel
+  const webpDataUrl = "data:image/webp;base64,UklGRiQAAABXRUJQVlA4IBgAAAAwAQCdASoBAAEAAkA4JZQCdAEO/gBIAAA=";
+  const webpBlob = dataUrlToBlob(webpDataUrl);
+  assert("WebP: MIME タイプが一致する",  webpBlob.type, "image/webp");
+  assertTrue("WebP: サイズが正の値",      webpBlob.size > 0);
 });
 
 // =====================================================

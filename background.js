@@ -270,10 +270,10 @@ async function handleImageSave(info, tab, formatKey) {
   const config   = FORMAT_CONFIG[formatKey];
   const filename = buildFilename(srcUrl, config.ext);
 
-  // chrome-extension://, chrome://, edge://, about: 等ではスクリプト注入不可
+  // chrome-extension://, moz-extension://, chrome://, edge://, about: 等ではスクリプト注入不可
   // 変換せず元画像をそのままダウンロードする
   const tabUrl = tab.url || "";
-  if (/^(chrome|edge|about|devtools)/i.test(tabUrl)) {
+  if (/^(chrome|edge|about|devtools|moz-extension)/i.test(tabUrl)) {
     try {
       const downloadId = await downloadOriginal(srcUrl, filename);
       // キャンセル時（downloadId === undefined）はテレメトリ送信をスキップ
@@ -626,26 +626,49 @@ class BlobDownloadError extends Error {
 }
 
 /**
+ * data URL を Blob に変換する。
+ * Firefox は chrome.downloads.download() で data: URL を直接扱えないため使用。
+ * @param {string} dataUrl
+ * @returns {Blob}
+ */
+function dataUrlToBlob(dataUrl) {
+  const [header, base64] = dataUrl.split(",");
+  const mime = header.match(/:(.*?);/)[1];
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return new Blob([bytes], { type: mime });
+}
+
+/**
  * data URL をダウンロードする（名前を付けて保存ダイアログを表示）。
  * @param {string} dataUrl
  * @param {string} filename
  */
 async function downloadFile(dataUrl, filename) {
-  return new Promise((resolve, reject) => {
-    chrome.downloads.download(
-      { url: dataUrl, filename: filename, saveAs: true },
-      (downloadId) => {
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message));
-        } else if (downloadId === undefined) {
-          console.info("[かんたん画像変換] Download cancelled by user.");
-          resolve(undefined);
-        } else {
-          resolve(downloadId);
+  // data: URL を blob: URL に変換（Firefox は data: URL の直接ダウンロード非対応）
+  const blobUrl = URL.createObjectURL(dataUrlToBlob(dataUrl));
+  try {
+    return await new Promise((resolve, reject) => {
+      chrome.downloads.download(
+        { url: blobUrl, filename: filename, saveAs: true },
+        (downloadId) => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+          } else if (downloadId === undefined) {
+            console.info("[かんたん画像変換] Download cancelled by user.");
+            resolve(undefined);
+          } else {
+            resolve(downloadId);
+          }
         }
-      }
-    );
-  });
+      );
+    });
+  } finally {
+    URL.revokeObjectURL(blobUrl);
+  }
 }
 
 /**

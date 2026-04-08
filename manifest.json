@@ -2,15 +2,26 @@
   "manifest_version": 3,
   "name": "かんたん画像変換",
   "version": "1.2.0",
-  "description": "Webページの画像を右クリックでJPG・PNG・WebPに変換して保存できるChromium系ブラウザ向け拡張機能",
+  "description": "Webページの画像を右クリックでJPG・PNG・WebPに変換して保存できるブラウザ拡張機能（Chrome・Firefox対応）",
   "permissions": [
     "contextMenus",
     "downloads",
     "activeTab",
     "scripting"
   ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "kantan-image-converter@takumi0213.github.io",
+      "strict_min_version": "128.0",
+      "data_collection_permissions": {
+        "required": ["none"],
+        "optional": ["technicalAndInteraction"]
+      }
+    }
+  },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "scripts": ["background.js"]
   },
   "action": {
     "default_icon": {
