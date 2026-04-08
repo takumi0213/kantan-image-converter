@@ -1,4 +1,4 @@
-# かんたん画像変換 - Chrome extension to convert and save web images
+# かんたん画像変換 - Browser extension to convert and save web images
 # Copyright (C) 2026 takumi0213
 #
 # This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Generate icons for かんたん画像変換 Chrome extension."""
+"""Generate icons for かんたん画像変換 browser extension."""
 from PIL import Image, ImageDraw
 
 def create_icon(size: int) -> Image.Image:

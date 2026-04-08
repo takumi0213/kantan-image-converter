@@ -2,7 +2,7 @@
   "name": "kantan-image-converter",
   "version": "1.2.0",
   "private": true,
-  "description": "Dev tooling for kantan-image-converter Chrome extension",
+  "description": "Dev tooling for kantan-image-converter browser extension",
   "type": "module",
   "scripts": {
     "lint": "eslint background.js docs/popup.js scripts/validate-manifest.cjs tests/background.test.js",
