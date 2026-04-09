@@ -169,7 +169,6 @@ python tools/generate_icons.py
 | `generateDatetimeFilename` | 日時ファイル名生成 |
 | `getOriginalExt` | 元ファイルの拡張子推定 |
 | `buildFilename` | ファイル名構築（統合） |
-| `dataUrlToBlob` | data URL → Blob 変換（Firefox ダウンロード対応） |
 
 Chrome API に依存する関数（`handleImageSave` 等）は手動テスト対象。
 

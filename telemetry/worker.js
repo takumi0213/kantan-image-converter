@@ -74,11 +74,11 @@ export default {
     const origin = request.headers.get("Origin") ?? "";
     if (origin.startsWith("chrome-extension://")) {
       if (env.ALLOWED_EXTENSION_ORIGIN && origin !== env.ALLOWED_EXTENSION_ORIGIN) {
-        return new Response("Forbidden", { status: 403 });
+        return new Response("Forbidden", { status: 403, headers: corsHeaders(origin) });
       }
     } else if (origin.startsWith("moz-extension://")) {
       if (env.ALLOWED_GECKO_EXTENSION_ORIGIN && origin !== env.ALLOWED_GECKO_EXTENSION_ORIGIN) {
-        return new Response("Forbidden", { status: 403 });
+        return new Response("Forbidden", { status: 403, headers: corsHeaders(origin) });
       }
     } else {
       return new Response("Forbidden", { status: 403 });

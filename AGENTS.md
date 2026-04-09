@@ -163,7 +163,7 @@ npm run validate   # manifest.json 検証
 
 `tests/background.test.js` はフレームワーク不要で Node.js 単体で実行できる。
 
-**テスト対象（Chrome API 非依存の純粋関数）:** `menuIdToFormat` / `isAllowedScheme` / `extractBaseName` / `removeExtension` / `sanitizeFilename` / `generateDatetimeFilename` / `getOriginalExt` / `buildFilename` / `dataUrlToBlob`
+**テスト対象（Chrome API 非依存の純粋関数）:** `menuIdToFormat` / `isAllowedScheme` / `extractBaseName` / `removeExtension` / `sanitizeFilename` / `generateDatetimeFilename` / `getOriginalExt` / `buildFilename`
 
 > **注意**: `tests/background.test.js` は `background.js` の純粋関数を**再定義**してテストしている。`background.js` の対象関数を変更した場合は `tests/background.test.js` の対応する関数も必ず同期すること。
 
