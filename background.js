@@ -1,4 +1,4 @@
-// かんたん画像変換 - Chrome extension to convert and save web images
+// かんたん画像変換 - Browser extension to convert and save web images
 // Copyright (C) 2026 takumi0213
 //
 // This program is free software: you can redistribute it and/or modify
@@ -270,10 +270,10 @@ async function handleImageSave(info, tab, formatKey) {
   const config   = FORMAT_CONFIG[formatKey];
   const filename = buildFilename(srcUrl, config.ext);
 
-  // chrome-extension://, chrome://, edge://, about: 等ではスクリプト注入不可
+  // chrome-extension://, moz-extension://, chrome://, edge://, about: 等ではスクリプト注入不可
   // 変換せず元画像をそのままダウンロードする
   const tabUrl = tab.url || "";
-  if (/^(chrome|edge|about|devtools)/i.test(tabUrl)) {
+  if (/^(chrome|edge|about|devtools|moz-extension)/i.test(tabUrl)) {
     try {
       const downloadId = await downloadOriginal(srcUrl, filename);
       // キャンセル時（downloadId === undefined）はテレメトリ送信をスキップ
@@ -631,21 +631,29 @@ class BlobDownloadError extends Error {
  * @param {string} filename
  */
 async function downloadFile(dataUrl, filename) {
-  return new Promise((resolve, reject) => {
-    chrome.downloads.download(
-      { url: dataUrl, filename: filename, saveAs: true },
-      (downloadId) => {
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message));
-        } else if (downloadId === undefined) {
-          console.info("[かんたん画像変換] Download cancelled by user.");
-          resolve(undefined);
-        } else {
-          resolve(downloadId);
+  // data: URL を blob: URL に変換（Firefox は data: URL の直接ダウンロード非対応）
+  // fetch() でブラウザ実装に委ねることで atob ループより効率的に変換する
+  const blob = await fetch(dataUrl).then((r) => r.blob());
+  const blobUrl = URL.createObjectURL(blob);
+  try {
+    return await new Promise((resolve, reject) => {
+      chrome.downloads.download(
+        { url: blobUrl, filename: filename, saveAs: true },
+        (downloadId) => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+          } else if (downloadId === undefined) {
+            console.info("[かんたん画像変換] Download cancelled by user.");
+            resolve(undefined);
+          } else {
+            resolve(downloadId);
+          }
         }
-      }
-    );
-  });
+      );
+    });
+  } finally {
+    URL.revokeObjectURL(blobUrl);
+  }
 }
 
 /**

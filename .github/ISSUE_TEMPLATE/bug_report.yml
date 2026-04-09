@@ -37,7 +37,7 @@ body:
     id: browser
     attributes:
       label: ブラウザ・バージョン
-      placeholder: 例：Chrome 130, Vivaldi 7.1
+      placeholder: 例：Chrome 130, Firefox 132, Vivaldi 7.1
     validations:
       required: true
   - type: input

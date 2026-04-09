@@ -4,7 +4,7 @@
 # 使い方: scripts/build-dist.sh <version>
 #   例: scripts/build-dist.sh v1.2.0
 #
-# かんたん画像変換 - Chrome extension to convert and save web images
+# かんたん画像変換 - Browser extension to convert and save web images
 # Copyright (C) 2026 takumi0213
 #
 # This program is free software: you can redistribute it and/or modify

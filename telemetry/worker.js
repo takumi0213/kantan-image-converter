@@ -1,4 +1,4 @@
-// かんたん画像変換 - Chrome extension to convert and save web images
+// かんたん画像変換 - Browser extension to convert and save web images
 // Copyright (C) 2026 takumi0213
 //
 // This program is free software: you can redistribute it and/or modify
@@ -50,7 +50,7 @@ const FORBIDDEN_KEYS = [
 const GA4_ENDPOINT = "https://www.google-analytics.com/mp/collect";
 
 // ── CORS ヘッダーを付与するヘルパー ──────────────────────────────────────
-// chrome-extension:// Origin に対してのみ許可する
+// chrome-extension:// / moz-extension:// Origin に対してのみ許可する
 function corsHeaders(origin) {
   return {
     "Access-Control-Allow-Origin":  origin,
@@ -69,13 +69,18 @@ export default {
       return new Response("Internal Server Error", { status: 500 });
     }
 
-    // Origin を chrome-extension:// に限定し、さらに拡張機能 ID を allowlist で照合
-    // ALLOWED_EXTENSION_ORIGIN 未設定時は chrome-extension:// スキーム一致のみで許可
+    // Origin を chrome-extension:// / moz-extension:// に限定し、拡張機能 ID を allowlist で照合
+    // ALLOWED_EXTENSION_ORIGIN / ALLOWED_GECKO_EXTENSION_ORIGIN 未設定時はスキーム一致のみで許可
     const origin = request.headers.get("Origin") ?? "";
-    if (!origin.startsWith("chrome-extension://")) {
-      return new Response("Forbidden", { status: 403 });
-    }
-    if (env.ALLOWED_EXTENSION_ORIGIN && origin !== env.ALLOWED_EXTENSION_ORIGIN) {
+    if (origin.startsWith("chrome-extension://")) {
+      if (env.ALLOWED_EXTENSION_ORIGIN && origin !== env.ALLOWED_EXTENSION_ORIGIN) {
+        return new Response("Forbidden", { status: 403, headers: corsHeaders(origin) });
+      }
+    } else if (origin.startsWith("moz-extension://")) {
+      if (env.ALLOWED_GECKO_EXTENSION_ORIGIN && origin !== env.ALLOWED_GECKO_EXTENSION_ORIGIN) {
+        return new Response("Forbidden", { status: 403, headers: corsHeaders(origin) });
+      }
+    } else {
       return new Response("Forbidden", { status: 403 });
     }
 
