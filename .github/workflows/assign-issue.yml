@@ -21,7 +21,7 @@ jobs:
       # continue-on-error により処理は継続される。
       - name: Add issue creator as assignee
         continue-on-error: true
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             await github.rest.issues.addAssignees({

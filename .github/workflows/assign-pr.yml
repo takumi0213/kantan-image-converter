@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Add PR creator as assignee
         continue-on-error: true
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             // ready_for_review 等では actor がPR作成者とは限らないため、PR作成者を参照する
@@ -34,7 +34,7 @@ jobs:
         # Draftでない場合のみ実行（opened/reopened はイベント時点のdraft状態を見る）
         if: ${{ !github.event.pull_request.draft }}
         continue-on-error: true
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             // ready_for_review 等では actor がPR作成者とは限らないため、PR作成者を参照する

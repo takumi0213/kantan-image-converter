@@ -26,7 +26,7 @@ jobs:
     steps:
       - name: Detect changed files
         id: changes
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const files = await github.paginate(
@@ -54,7 +54,7 @@ jobs:
       # manifest.json が変更された場合のみコメント
       - name: Comment – manifest changed
         if: steps.changes.outputs.manifest == 'true'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const body = [
@@ -78,7 +78,7 @@ jobs:
       # background.js が変更された場合のみコメント
       - name: Comment – background changed
         if: steps.changes.outputs.background == 'true'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const body = [
@@ -112,7 +112,7 @@ jobs:
       # docs/popup.html または docs/popup.js が変更された場合のみコメント
       - name: Comment – popup changed
         if: steps.changes.outputs.popup == 'true'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const body = [
@@ -137,7 +137,7 @@ jobs:
       # website/ が変更された場合のみコメント
       - name: Comment – website changed
         if: steps.changes.outputs.website == 'true'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const body = [
@@ -160,7 +160,7 @@ jobs:
       # icons/ が変更された場合のみコメント
       - name: Comment – icons changed
         if: steps.changes.outputs.icons == 'true'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const body = [
