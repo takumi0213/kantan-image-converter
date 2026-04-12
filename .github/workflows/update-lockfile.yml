@@ -51,7 +51,7 @@ jobs:
       - name: Add assignee and reviewer
         if: steps.cpr.outputs.pull-request-number != ''
         continue-on-error: true
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const prNumber = parseInt('${{ steps.cpr.outputs.pull-request-number }}', 10);
