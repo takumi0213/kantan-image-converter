@@ -164,6 +164,7 @@ kantan-image-converter/
 ├── eslint.config.js     # ESLint 設定
 ├── package.json         # 開発用スクリプト・devDependencies 定義
 ├── package-lock.json    # npm 依存のロックファイル
+├── DESIGN.md            # UIデザインシステム仕様（Claude Design / Claude Code 向け）
 ├── CLAUDE.md            # Claude Code 用プロジェクトガイド
 ├── AGENTS.md            # AI エージェント向け仕様ドキュメント
 ├── CODE_OF_CONDUCT.md   # 行動規範
