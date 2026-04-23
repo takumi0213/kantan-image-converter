@@ -63,6 +63,7 @@ kantan-image-converter/
 ├── eslint.config.js     # ESLint 設定（flat config、v9）
 ├── package.json         # 開発用スクリプト・devDependencies 定義
 ├── package-lock.json    # npm 依存のロックファイル
+├── DESIGN.md
 ├── CLAUDE.md
 ├── AGENTS.md
 ├── CODE_OF_CONDUCT.md
@@ -182,3 +183,14 @@ npm run validate   # manifest.json 検証
 3. 通常のWebページで画像を右クリックし、各フォーマット（PNG/JPG/WebP）で変換・保存を確認
 4. アニメーションGIF・SVGがそのまま保存されることを確認
 5. `moz-extension://` 等の制限ページでは変換されず元画像がダウンロードされることを確認
+
+---
+
+## デザインシステム
+
+`DESIGN.md`（リポジトリルート）にUI仕様を定義している。
+
+- **Claude Design**: プロジェクトのコンテキストとしてアップロードし、デザイン生成の基準として使用する
+- **Claude Code**: `website/` および `docs/` の HTML / CSS を修正・生成する際は必ず参照すること
+
+`website/`（GitHub Pages 公開）と `docs/`（拡張機能内部ページ）はフォント・CSS変数・コンテナ幅等の制約が異なるため、`DESIGN.md` ではデザインシステムを完全に分けて定義している。詳細は `DESIGN.md` を参照すること。
