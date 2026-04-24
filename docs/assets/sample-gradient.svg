@@ -1,12 +1,101 @@
-<svg width="240" height="120" viewBox="0 0 240 120" xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="120" viewBox="0 0 240 120">
   <defs>
-    <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#bfdbfe"/>
-      <stop offset="50%" stop-color="#ddd6fe"/>
-      <stop offset="100%" stop-color="#fde68a"/>
+
+    <linearGradient id="base" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0c0a1e"></stop>
+      <stop offset="50%" stop-color="#1a0a3e"></stop>
+      <stop offset="100%" stop-color="#0a1628"></stop>
     </linearGradient>
+
+    <radialGradient id="glow-center" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.9"></stop>
+      <stop offset="40%" stop-color="#6d28d9" stop-opacity="0.5"></stop>
+      <stop offset="100%" stop-color="#4c1d95" stop-opacity="0"></stop>
+    </radialGradient>
+
+    <radialGradient id="glow-left" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.85"></stop>
+      <stop offset="50%" stop-color="#2563eb" stop-opacity="0.4"></stop>
+      <stop offset="100%" stop-color="#1d4ed8" stop-opacity="0"></stop>
+    </radialGradient>
+
+    <radialGradient id="glow-right" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ec4899" stop-opacity="0.85"></stop>
+      <stop offset="50%" stop-color="#db2777" stop-opacity="0.4"></stop>
+      <stop offset="100%" stop-color="#be185d" stop-opacity="0"></stop>
+    </radialGradient>
+
+    <radialGradient id="glow-top" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.7"></stop>
+      <stop offset="60%" stop-color="#0891b2" stop-opacity="0.3"></stop>
+      <stop offset="100%" stop-color="#0e7490" stop-opacity="0"></stop>
+    </radialGradient>
+
+    <radialGradient id="glow-bottom" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.6"></stop>
+      <stop offset="60%" stop-color="#d97706" stop-opacity="0.25"></stop>
+      <stop offset="100%" stop-color="#b45309" stop-opacity="0"></stop>
+    </radialGradient>
+
+    <radialGradient id="core" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"></stop>
+      <stop offset="30%" stop-color="#e9d5ff" stop-opacity="0.7"></stop>
+      <stop offset="70%" stop-color="#c4b5fd" stop-opacity="0.3"></stop>
+      <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"></stop>
+    </radialGradient>
+
+    <radialGradient id="rim" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#a5f3fc" stop-opacity="0.5"></stop>
+      <stop offset="100%" stop-color="#a5f3fc" stop-opacity="0"></stop>
+    </radialGradient>
+    <filter id="blur-sm">
+      <feGaussianBlur stdDeviation="2"></feGaussianBlur>
+    </filter>
+    <filter id="blur-md">
+      <feGaussianBlur stdDeviation="4"></feGaussianBlur>
+    </filter>
   </defs>
-  <rect width="240" height="120" fill="url(#grad)"/>
-  <circle cx="80" cy="60" r="35" fill="#fff" opacity=".25"/>
-  <circle cx="160" cy="60" r="35" fill="#fff" opacity=".25"/>
+
+
+  <rect width="240" height="120" fill="url(#base)"></rect>
+
+
+  <circle cx="30" cy="12" r="1" fill="rgba(255,255,255,0.6)"></circle>
+  <circle cx="72" cy="8" r="0.8" fill="rgba(255,255,255,0.5)"></circle>
+  <circle cx="170" cy="10" r="1.2" fill="rgba(255,255,255,0.7)"></circle>
+  <circle cx="210" cy="6" r="0.8" fill="rgba(255,255,255,0.4)"></circle>
+  <circle cx="226" cy="22" r="1" fill="rgba(255,255,255,0.5)"></circle>
+  <circle cx="16" cy="50" r="0.8" fill="rgba(255,255,255,0.4)"></circle>
+  <circle cx="228" cy="88" r="1" fill="rgba(255,255,255,0.45)"></circle>
+  <circle cx="50" cy="108" r="0.8" fill="rgba(255,255,255,0.35)"></circle>
+  <circle cx="190" cy="115" r="1" fill="rgba(255,255,255,0.4)"></circle>
+
+
+  <ellipse cx="60" cy="60" rx="70" ry="55" fill="url(#glow-left)" filter="url(#blur-md)"></ellipse>
+  <ellipse cx="180" cy="60" rx="70" ry="55" fill="url(#glow-right)" filter="url(#blur-md)"></ellipse>
+  <ellipse cx="120" cy="20" rx="60" ry="40" fill="url(#glow-top)" filter="url(#blur-md)"></ellipse>
+  <ellipse cx="120" cy="100" rx="55" ry="35" fill="url(#glow-bottom)" filter="url(#blur-md)"></ellipse>
+
+
+  <ellipse cx="120" cy="60" rx="90" ry="65" fill="url(#glow-center)"></ellipse>
+
+
+  <ellipse cx="120" cy="60" rx="45" ry="32" fill="none" stroke="rgba(167,139,250,0.35)" stroke-width="1.5"></ellipse>
+  <ellipse cx="120" cy="60" rx="62" ry="44" fill="none" stroke="rgba(167,139,250,0.15)" stroke-width="1"></ellipse>
+
+
+  <ellipse cx="105" cy="48" rx="18" ry="12" fill="url(#rim)" filter="url(#blur-sm)"></ellipse>
+
+
+  <ellipse cx="120" cy="60" rx="28" ry="20" fill="url(#core)" filter="url(#blur-sm)"></ellipse>
+
+
+  <circle cx="120" cy="60" r="6" fill="rgba(255,255,255,0.9)"></circle>
+  <circle cx="120" cy="60" r="3" fill="#ffffff"></circle>
+
+
+  <line x1="120" y1="0" x2="120" y2="120" stroke="rgba(255,255,255,0.06)" stroke-width="1.5"></line>
+  <line x1="0" y1="60" x2="240" y2="60" stroke="rgba(255,255,255,0.06)" stroke-width="1.5"></line>
+  <line x1="40" y1="0" x2="200" y2="120" stroke="rgba(255,255,255,0.03)" stroke-width="1"></line>
+  <line x1="200" y1="0" x2="40" y2="120" stroke="rgba(255,255,255,0.03)" stroke-width="1"></line>
 </svg>
