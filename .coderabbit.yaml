@@ -1,0 +1,161 @@
+# CodeRabbit 設定 — かんたん画像変換
+# https://docs.coderabbit.ai/getting-started/configure-coderabbit
+
+language: "ja-JP"
+
+reviews:
+  # PRサマリーを自動生成
+  auto_review:
+    enabled: true
+    drafts: true            # ドラフトPRもレビューする
+    auto_incremental_review: true
+    base_branches: []
+
+  # レビューのプロフィール: assertive = 積極的に問題を指摘
+  profile: "assertive"
+
+  # ハイレベルなサマリーを生成
+  high_level_summary: true
+
+  # 詩的なウォークスルーは不要
+  poem: false
+
+  # ウォークスルー（変更概要）を生成
+  review_status: true
+
+  # ウォークスルーは折りたたんで表示（PRのdiffを見やすくする）
+  collapse_walkthrough: true
+
+  # 関連IssueおよびPRの参照
+  assess_linked_issues: true
+  related_issues: true
+  related_prs: true
+
+  # レビュアー候補を提案する
+  suggested_reviewers: true
+
+  # レビュー中のフォーチュン表示は不要
+  in_progress_fortune: false
+
+  # AIが生成したような冗長な文章を検出
+  slop_detection:
+    enabled: true
+
+  # レビュー観点のカスタム指示
+  path_instructions:
+    # 拡張機能のコア
+    - path: "background.js"
+      instructions: |
+        このファイルはブラウザ拡張機能のService Worker（コア）です。以下の観点で厳しくレビューしてください。
+
+        【セキュリティ（最重要）】
+        - URLスキーム検証: ALLOWED_SCHEMES（http:, https:, data:, blob:）以外を通過させていないか
+        - ファイル名サニタイズ: パストラバーサル・null バイト・特殊文字除去が維持されているか
+        - host_permissions を新たに使用していないか
+        - content script が isolated world で実行されているか
+        - saveAs: true が維持されているか
+
+        【テレメトリ制約】
+        - url, src, srcUrl, tab, tabUrl, filename, message, errorMessage, sessionId, userId, clientId などの禁止フィールドを送信していないか
+        - ALLOWED_EVENTS, ALLOWED_FORMATS, ALLOWED_RESULTS, ALLOWED_REASONS の許可リスト外の値を送信していないか
+        - extension_version のバリデーション（/^\d+\.\d+\.\d+$/ のみ許可）が維持されているか
+
+        【フォールバック動作】
+        - 変換失敗時に必ず元画像URLをダウンロードするフォールバックが維持されているか
+        - blob: URL のエラー分岐で BlobDownloadError がスローされているか
+
+        【非同期処理・競合】
+        - processingQueue（直列キュー）のパターンを壊していないか
+        - Service Worker の非同期処理で未処理のPromise拒否が発生しないか
+
+        【変換しないケース】
+        - アニメーションGIF, アニメーションWebP, SVG がそのまま保存されるか
+
+        【制限ページ】
+        - chrome://, chrome-extension://, moz-extension://, edge://, about:, devtools: でフォールバックに直行しているか
+
+        【コーディング規約】
+        - "use strict" が維持されているか
+        - JSDoc コメント（@param, @returns）が付いているか
+        - console ログに [かんたん画像変換] プレフィックスがあるか
+        - console.error / warn / info の使い分けが適切か
+        - 外部ライブラリ・npm依存を追加していないか（バニラJSのみ）
+
+        【ドキュメント整合性】
+        - background.js の変更が CLAUDE.md / AGENTS.md / README に反映されているか
+        - テスト対象の純粋関数を変更した場合、tests/background.test.js も同期されているか
+
+    # ポップアップ
+    - path: "docs/popup.js"
+      instructions: |
+        ポップアップUIのスクリプトです。以下を確認してください。
+        - 外部ライブラリを使用していないか
+        - XSS リスクになる DOM 操作がないか（innerHTML への非サニタイズ値代入等）
+        - manifest.json のバージョンと同期が必要な箇所がないか
+
+    # テスト
+    - path: "tests/background.test.js"
+      instructions: |
+        ユニットテストファイルです。以下を確認してください。
+        - background.js の純粋関数を変更した場合、対応するテスト内の関数定義が同期されているか
+        - テストケースがエッジケース（空文字・null・特殊文字・境界値）をカバーしているか
+        - 外部テストフレームワーク（jest等）を import していないか（Node.js 単体実行が必須）
+
+    # マニフェスト
+    - path: "manifest.json"
+      instructions: |
+        拡張機能マニフェスト（Manifest V3）です。以下を確認してください。
+        - host_permissions が追加されていないか（使用禁止）
+        - 新しい permissions を追加する場合、SECURITY.md と CLAUDE.md の権限説明が更新されているか
+        - 参照先ファイル（service_worker / popup / icons）が実際に存在するか
+        - gecko (Firefox) の strict_min_version が適切か
+
+    # CI/CD
+    - path: ".github/workflows/**"
+      instructions: |
+        GitHub Actions ワークフローです。以下を確認してください。
+        - GITHUB_TOKEN / シークレットの権限が最小限か（contents: read 等）
+        - サードパーティ Actions のバージョンが固定されているか（@v1 等のメジャー固定でも可）
+        - スクリプトインジェクション（${{ github.event.xxx }} を run: 内で直接展開）がないか
+
+    # テレメトリWorker
+    - path: "telemetry/worker.js"
+      instructions: |
+        Cloudflare Worker によるテレメトリプロキシです。以下を確認してください。
+        - background.js の FORBIDDEN_KEYS と同一のチェックが維持されているか
+        - api_secret がコード内にハードコードされていないか
+        - CORS ヘッダーが適切か
+
+    # スクリプト類
+    - path: "scripts/**"
+      instructions: |
+        開発用スクリプトです。CI で実行されるため、以下を確認してください。
+        - Node.js の process.exit コードが適切か（異常時は 0 以外）
+        - ファイルパスのハードコードが環境依存になっていないか
+
+# コメントの解決を自動化しない（手動で確認してから解決する）
+chat:
+  auto_reply: true
+  art: false
+  allow_non_org_members: true   # publicリポジトリのため外部コントリビューターも対話可能
+  integrations:
+    jira:
+      usage: disabled
+    linear:
+      usage: disabled
+
+knowledge_base:
+  learnings:
+    scope: auto       # 過去のレビューから学習して精度を上げる
+  issues:
+    scope: auto
+  pull_requests:
+    scope: auto
+  jira:
+    usage: disabled
+  linear:
+    usage: disabled
+
+code_generation:
+  docstrings:
+    language: ja-JP   # ドキュメント生成は日本語で
