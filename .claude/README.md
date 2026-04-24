@@ -14,7 +14,7 @@
 
 Claude Code のチャットでコマンド名を入力するだけで実行できます。
 
-```
+```text
 /prepare-release patch
 /design-check
 /worker-deploy
