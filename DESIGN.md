@@ -407,11 +407,12 @@ section h2 {
 1. ヘッダー（タイトル + 説明文）
 2. 通知ボックス（このページでは変換不可の旨）
 3. 使い方（3ステップ）
-4. サンプル画像（SVG で生成した画像グリッド）
+4. サンプル画像（`docs/assets/` の外部SVGファイルを `<img>` で参照）
 
 **サンプル画像について**
 - base64 PNG は使用しない（崩れが発生するため）
-- SVG をインラインで記述し、シンプルなグラフィックを表示する
+- SVG ファイルを `docs/assets/` に配置し、`<img src="./assets/*.svg">` で参照する
+- インラインSVGは使用しない（`contexts: ["image"]` のコンテキストメニューが機能しないため）
 - サイズ: 幅 100% / 高さ 120px 程度のプレースホルダー
 
 ### 4.6 file: popup.html
@@ -501,7 +502,7 @@ body {
 - Google Fonts は一切参照しない
 - カラーは直書きで記述し、CSS 変数を使用しない
 - ブルーは `#2563eb`（website/ に統一）を使用する
-- サンプル画像は SVG で記述し、base64 PNG は使用しない
+- サンプル画像は `docs/assets/*.svg` を配置し `<img src="./assets/*.svg">` で参照する（base64 PNG は使用しない）
 
 ### Don't（禁止）
 
@@ -515,7 +516,7 @@ body {
 **docs/**
 - `"Segoe UI"` をフォントスタック先頭に使用しない
 - `#2979c2` など旧ブルー値を使用しない（`#2563eb` に統一）
-- base64 埋め込み画像を使用しない（SVG を使用する）
+- base64 埋め込み画像・インラインSVGを使用しない（`docs/assets/*.svg` ＋ `<img>` タグを使用する）
 - CSS 変数を使用しない（直書きで統一）
 - popup.html の幅（240px）を変更しない
 
@@ -579,7 +580,7 @@ DESIGN.md（docs/ セクション）に従って demo.html を修正してくだ
 - フォント: "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif
 - テキストカラー: rgba(0,0,0,0.82)（直書き・CSS変数不使用）
 - ブルー: #2563eb（website/ に統一）
-- サンプル画像: SVG をインライン記述（base64 PNG は使用しない）
+- サンプル画像: `docs/assets/*.svg` を配置し `<img src="./assets/*.svg">` で参照する（base64 PNG・インラインSVG は使用しない）
 - 通知ボックス: background #fffbeb, border #fde68a, color #92400e
 - コンテナ幅: max-width 680px
 ```
