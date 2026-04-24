@@ -63,7 +63,7 @@
 
   /* Shadow */
   --shadow-sm:  0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
-  --shadow:     0 4px 16px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.06);
+  --shadow:     0 0 1rem rgba(0,0,0,0.1), 0 0.125rem 0.25rem rgba(0,0,0,0.2);
   --shadow-lg:  0 20px 40px rgba(0,0,0,.1), 0 8px 16px rgba(0,0,0,.06);
 }
 ```
@@ -413,6 +413,7 @@ section h2 {
 - base64 PNG は使用しない（崩れが発生するため）
 - SVG ファイルを `docs/assets/` に配置し、`<img src="./assets/*.svg">` で参照する
 - インラインSVGは使用しない（`contexts: ["image"]` のコンテキストメニューが機能しないため）
+- サイズ: 幅 100% / 高さ 120px 程度のプレースホルダー
 - サイズ: 幅 100% / 高さ 120px 程度のプレースホルダー
 
 ### 4.6 file: popup.html
