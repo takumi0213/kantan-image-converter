@@ -186,6 +186,18 @@ npm run validate   # manifest.json 検証
 
 ---
 
+## カスタムスラッシュコマンド
+
+`.claude/commands/` に定義済み。詳細は `.claude/README.md` を参照。
+
+| コマンド | 用途 | 使うタイミング |
+|---|---|---|
+| `/prepare-release [patch\|minor\|major]` | バンプ・チェック一式・リリースノートドラフト生成 | リリース前 |
+| `/design-check` | UI 変更の DESIGN.md 仕様照合 | `website/` または `docs/` を変更したとき |
+| `/worker-deploy` | Cloudflare Worker のデプロイ前チェック | `telemetry/worker.js` を変更したとき |
+
+---
+
 ## デザインシステム
 
 `DESIGN.md`（リポジトリルート）にUI仕様を定義している。
