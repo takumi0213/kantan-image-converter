@@ -1,89 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="240" height="120" viewBox="0 0 240 120">
+<svg width="240" height="120" viewBox="0 0 240 120" xmlns="http://www.w3.org/2000/svg">
   <defs>
-
     <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#1e3a8a"></stop>
-      <stop offset="60%" stop-color="#3b82f6"></stop>
-      <stop offset="100%" stop-color="#93c5fd"></stop>
+      <stop offset="0%" stop-color="#bfdbfe"/>
+      <stop offset="100%" stop-color="#e0f2fe"/>
     </linearGradient>
-
-    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#16a34a"></stop>
-      <stop offset="100%" stop-color="#14532d"></stop>
-    </linearGradient>
-
-    <linearGradient id="mountain1" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#f1f5f9"></stop>
-      <stop offset="30%" stop-color="#cbd5e1"></stop>
-      <stop offset="100%" stop-color="#64748b"></stop>
-    </linearGradient>
-    <linearGradient id="mountain2" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#e2e8f0"></stop>
-      <stop offset="35%" stop-color="#94a3b8"></stop>
-      <stop offset="100%" stop-color="#475569"></stop>
-    </linearGradient>
-    <linearGradient id="mountain3" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#334155"></stop>
-      <stop offset="100%" stop-color="#1e293b"></stop>
-    </linearGradient>
-
-    <radialGradient id="sun" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#fef08a"></stop>
-      <stop offset="50%" stop-color="#facc15"></stop>
-      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"></stop>
-    </radialGradient>
   </defs>
-
-
-  <rect width="240" height="120" fill="url(#sky)"></rect>
-
-
-  <ellipse cx="190" cy="32" rx="22" ry="22" fill="url(#sun)" opacity="0.5"></ellipse>
-
-  <circle cx="190" cy="32" r="12" fill="#fde047"></circle>
-  <circle cx="190" cy="32" r="9" fill="#fef08a"></circle>
-
-
-  <g opacity="0.6">
-    <ellipse cx="60" cy="28" rx="28" ry="9" fill="#e0f2fe"></ellipse>
-    <ellipse cx="45" cy="30" rx="16" ry="7" fill="#e0f2fe"></ellipse>
-    <ellipse cx="75" cy="31" rx="14" ry="6" fill="#e0f2fe"></ellipse>
-  </g>
-
-
-  <g opacity="0.9">
-    <ellipse cx="130" cy="20" rx="22" ry="8" fill="#f0f9ff"></ellipse>
-    <ellipse cx="115" cy="22" rx="13" ry="6" fill="#f0f9ff"></ellipse>
-    <ellipse cx="146" cy="22" rx="11" ry="5" fill="#f0f9ff"></ellipse>
-  </g>
-
-
-  <polygon points="160,78 200,40 240,78" fill="url(#mountain3)"></polygon>
-
-
-  <polygon points="40,78 95,28 150,78" fill="url(#mountain2)"></polygon>
-
-  <polygon points="75,42 95,28 115,42" fill="#f8fafc" opacity="0.9"></polygon>
-
-
-  <polygon points="80,78 140,18 200,78" fill="url(#mountain1)"></polygon>
-
-  <polygon points="118,32 140,18 162,32" fill="#ffffff"></polygon>
-  <polygon points="122,36 140,18 158,36" fill="#f1f5f9" opacity="0.7"></polygon>
-
-
-  <rect x="0" y="78" width="240" height="42" fill="url(#ground)"></rect>
-
-  <ellipse cx="60" cy="78" rx="70" ry="8" fill="#15803d"></ellipse>
-  <ellipse cx="180" cy="78" rx="80" ry="6" fill="#166534"></ellipse>
-
-
-  <rect x="28" y="74" width="4" height="16" fill="#713f12"></rect>
-  <ellipse cx="30" cy="70" rx="10" ry="11" fill="#15803d"></ellipse>
-  <ellipse cx="30" cy="67" rx="7" ry="8" fill="#16a34a"></ellipse>
-
-
-  <rect x="205" y="72" width="4" height="18" fill="#713f12"></rect>
-  <ellipse cx="207" cy="68" rx="11" ry="12" fill="#14532d"></ellipse>
-  <ellipse cx="207" cy="65" rx="8" ry="9" fill="#15803d"></ellipse>
+  <rect width="240" height="120" fill="url(#sky)"/>
+  <ellipse cx="120" cy="130" rx="100" ry="40" fill="#86efac"/>
+  <circle cx="60" cy="38" r="18" fill="#fde68a"/>
+  <ellipse cx="160" cy="50" rx="28" ry="16" fill="#fff" opacity=".8"/>
+  <ellipse cx="185" cy="46" rx="20" ry="12" fill="#fff" opacity=".7"/>
 </svg>
