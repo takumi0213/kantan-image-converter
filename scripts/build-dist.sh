@@ -40,7 +40,7 @@ DIST_DIR="kantan-image-converter"
 # 再実行時に古いZIPとディレクトリが残らないようクリーン
 rm -f "${ZIP_NAME}"
 rm -rf "$DIST_DIR"
-mkdir -p "$DIST_DIR/icons" "$DIST_DIR/docs"
+mkdir -p "$DIST_DIR/icons" "$DIST_DIR/docs/assets"
 
 cp manifest.json "$DIST_DIR/"
 cp background.js  "$DIST_DIR/"
@@ -50,6 +50,7 @@ cp icons/icon128.png "$DIST_DIR/icons/"
 cp docs/popup.html "$DIST_DIR/docs/"
 cp docs/popup.js   "$DIST_DIR/docs/"
 cp docs/demo.html  "$DIST_DIR/docs/"
+cp docs/assets/*.svg "$DIST_DIR/docs/assets/"
 cp LICENSE         "$DIST_DIR/"
 
 # manifest.json がZIP直下に来るよう、ディレクトリの中身を圧縮する
