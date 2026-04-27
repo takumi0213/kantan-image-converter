@@ -641,10 +641,18 @@ class BlobDownloadError extends Error {
  * @param {string} dataUrl
  * @param {string} filename
  */
-async function downloadFile(dataUrl, filename) {
+function downloadFile(dataUrl, filename) {
   // data: URL を blob: URL に変換（Firefox は data: URL の直接ダウンロード非対応）
-  // fetch() でブラウザ実装に委ねることで atob ループより効率的に変換する
-  const blob = await fetch(dataUrl).then((r) => r.blob());
+  // fetch(data:URL) は Chromium Service Worker で失敗する実装があるため
+  // atob で直接 Blob を生成する（Chrome・Firefox 両対応）
+  const [meta, base64] = dataUrl.split(",");
+  const mime = meta.match(/:(.*?);/)[1];
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  const blob = new Blob([bytes], { type: mime });
   const blobUrl = URL.createObjectURL(blob);
 
   return new Promise((resolve, reject) => {
