@@ -654,15 +654,30 @@ async function downloadFile(dataUrl, filename) {
         // callback 直後に revoke するとブラウザが実データを読む前に URL が無効になり
         // download_failed が発生する場合がある（Windows + Vivaldi 等で顕在化）。
         // onChanged でダウンロードが完了または中断してから revoke する。
+        let cleanedUp = false;
+        const cleanup = () => {
+          if (cleanedUp) return;
+          cleanedUp = true;
+          chrome.downloads.onChanged.removeListener(onChanged);
+          URL.revokeObjectURL(blobUrl);
+        };
         const onChanged = (delta) => {
           if (delta.id !== downloadId || !delta.state) return;
           const state = delta.state.current;
           if (state === "complete" || state === "interrupted") {
-            chrome.downloads.onChanged.removeListener(onChanged);
-            URL.revokeObjectURL(blobUrl);
+            cleanup();
           }
         };
         chrome.downloads.onChanged.addListener(onChanged);
+        // addListener より前にダウンロードが終了していた場合は onChanged が発火しない。
+        // 登録直後に状態を確認し、既に終端状態であれば即座にクリーンアップする。
+        chrome.downloads.search({ id: downloadId }, (items) => {
+          if (chrome.runtime.lastError) return;
+          const state = items?.[0]?.state;
+          if (state === "complete" || state === "interrupted") {
+            cleanup();
+          }
+        });
         resolve(downloadId);
       }
     );
