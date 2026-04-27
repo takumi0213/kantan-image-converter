@@ -635,25 +635,38 @@ async function downloadFile(dataUrl, filename) {
   // fetch() でブラウザ実装に委ねることで atob ループより効率的に変換する
   const blob = await fetch(dataUrl).then((r) => r.blob());
   const blobUrl = URL.createObjectURL(blob);
-  try {
-    return await new Promise((resolve, reject) => {
-      chrome.downloads.download(
-        { url: blobUrl, filename: filename, saveAs: true },
-        (downloadId) => {
-          if (chrome.runtime.lastError) {
-            reject(new Error(chrome.runtime.lastError.message));
-          } else if (downloadId === undefined) {
-            console.info("[かんたん画像変換] Download cancelled by user.");
-            resolve(undefined);
-          } else {
-            resolve(downloadId);
-          }
+
+  return new Promise((resolve, reject) => {
+    chrome.downloads.download(
+      { url: blobUrl, filename: filename, saveAs: true },
+      (downloadId) => {
+        if (chrome.runtime.lastError) {
+          URL.revokeObjectURL(blobUrl);
+          reject(new Error(chrome.runtime.lastError.message));
+          return;
         }
-      );
-    });
-  } finally {
-    URL.revokeObjectURL(blobUrl);
-  }
+        if (downloadId === undefined) {
+          URL.revokeObjectURL(blobUrl);
+          console.info("[かんたん画像変換] Download cancelled by user.");
+          resolve(undefined);
+          return;
+        }
+        // callback 直後に revoke するとブラウザが実データを読む前に URL が無効になり
+        // download_failed が発生する場合がある（Windows + Vivaldi 等で顕在化）。
+        // onChanged でダウンロードが完了または中断してから revoke する。
+        const onChanged = (delta) => {
+          if (delta.id !== downloadId || !delta.state) return;
+          const state = delta.state.current;
+          if (state === "complete" || state === "interrupted") {
+            chrome.downloads.onChanged.removeListener(onChanged);
+            URL.revokeObjectURL(blobUrl);
+          }
+        };
+        chrome.downloads.onChanged.addListener(onChanged);
+        resolve(downloadId);
+      }
+    );
+  });
 }
 
 /**
