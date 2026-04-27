@@ -49,6 +49,13 @@ const FORMAT_CONFIG = {
 /** エラーバッジ表示時間 (ms) */
 const ERROR_BADGE_DURATION = 4000;
 
+/**
+ * デバッグモード。true にするとテレメトリ送信を無効化し、
+ * ダウンロードエラーの詳細をコンソールに出力する。
+ * リリース時は必ず false にすること。
+ */
+const DEBUG = false;
+
 // ========================================================
 // テレメトリ定数
 // ========================================================
@@ -145,6 +152,10 @@ function sendTelemetry(eventName, params) {
   }
 
   // --- 非同期送信（try-catch で本処理に影響させない）---
+  if (DEBUG) {
+    console.debug("[かんたん画像変換] [DEBUG] telemetry suppressed:", eventName, eventParams);
+    return;
+  }
   try {
     fetch(TELEMETRY_ENDPOINT, {
       method: "POST",
@@ -641,6 +652,7 @@ async function downloadFile(dataUrl, filename) {
       { url: blobUrl, filename: filename, saveAs: true },
       (downloadId) => {
         if (chrome.runtime.lastError) {
+          if (DEBUG) console.error("[かんたん画像変換] [DEBUG] download error:", chrome.runtime.lastError.message);
           URL.revokeObjectURL(blobUrl);
           reject(new Error(chrome.runtime.lastError.message));
           return;
