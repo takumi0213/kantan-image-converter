@@ -645,39 +645,63 @@ class BlobDownloadError extends Error {
  * @param {string} filename
  */
 function downloadFile(dataUrl, filename) {
-  // data: URL を blob: URL に変換（Firefox は data: URL の直接ダウンロード非対応）
-  // fetch(data:URL) は Chromium Service Worker で失敗する実装があるため
-  // atob で直接 Blob を生成する（Chrome・Firefox 両対応）
   if (DEBUG) console.warn("[かんたん画像変換] [DEBUG] downloadFile start, dataUrl prefix:", dataUrl?.slice(0, 80));
-  const [meta, base64] = dataUrl.split(",");
-  const mime = meta.match(/:(.*?);/)[1];
-  if (DEBUG) console.warn("[かんたん画像変換] [DEBUG] mime:", mime, "base64 length:", base64?.length);
-  const binaryString = atob(base64);
-  const bytes = new Uint8Array(binaryString.length);
-  for (let i = 0; i < binaryString.length; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
+
+  // Chrome SW では URL.createObjectURL が利用不可のため data: URL を直接渡す。
+  // Firefox SW では URL.createObjectURL が利用可能なので atob で Blob を生成し
+  // blob: URL 経由でダウンロードする（Firefox は data: URL の直接DLに非対応）。
+  let downloadUrl = dataUrl;
+  let blobUrl = null;
+
+  if (typeof URL.createObjectURL === "function") {
+    // Firefox path: atob → Blob → blob: URL
+    const match = /^data:([^;,]+);base64,(.+)$/s.exec(dataUrl || "");
+    if (!match) {
+      return Promise.reject(new Error("Invalid data URL format"));
+    }
+    const [, mime, base64] = match;
+    if (DEBUG) console.warn("[かんたん画像変換] [DEBUG] Firefox path: mime:", mime, "base64 length:", base64.length);
+    let binaryString;
+    try {
+      binaryString = atob(base64);
+    } catch {
+      return Promise.reject(new Error("Invalid base64 payload"));
+    }
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    const blob = new Blob([bytes], { type: mime });
+    blobUrl = URL.createObjectURL(blob);
+    downloadUrl = blobUrl;
+  } else {
+    // Chrome path: data: URL を直接渡す（Chrome SW は URL.createObjectURL 非対応）
+    if (DEBUG) console.warn("[かんたん画像変換] [DEBUG] Chrome path: URL.createObjectURL unavailable, using data URL directly");
   }
-  const blob = new Blob([bytes], { type: mime });
-  const blobUrl = URL.createObjectURL(blob);
 
   return new Promise((resolve, reject) => {
     chrome.downloads.download(
-      { url: blobUrl, filename: filename, saveAs: true },
+      { url: downloadUrl, filename: filename, saveAs: true },
       (downloadId) => {
         if (chrome.runtime.lastError) {
           if (DEBUG) console.warn("[かんたん画像変換] [DEBUG] download error (lastError):", chrome.runtime.lastError.message);
-          URL.revokeObjectURL(blobUrl);
+          if (blobUrl) URL.revokeObjectURL(blobUrl);
           reject(new Error(chrome.runtime.lastError.message));
           return;
         }
         if (downloadId === undefined) {
-          URL.revokeObjectURL(blobUrl);
+          if (blobUrl) URL.revokeObjectURL(blobUrl);
           console.info("[かんたん画像変換] Download cancelled by user.");
           resolve(undefined);
           return;
         }
-        // callback 直後に revoke するとブラウザが実データを読む前に URL が無効になり
-        // download_failed が発生する場合がある（Windows + Vivaldi 等で顕在化）。
+        if (!blobUrl) {
+          // Chrome path: data URL 直接渡しなので blob: URL の cleanup は不要
+          resolve(downloadId);
+          return;
+        }
+        // Firefox path: callback 直後に revoke するとブラウザが実データを読む前に
+        // URL が無効になり download_failed が発生する場合がある。
         // onChanged でダウンロードが完了または中断してから revoke する。
         let cleanedUp = false;
         const cleanup = () => {
