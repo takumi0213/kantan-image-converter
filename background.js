@@ -153,7 +153,9 @@ function sendTelemetry(eventName, params) {
 
   // --- 非同期送信（try-catch で本処理に影響させない）---
   if (DEBUG) {
-    console.debug("[かんたん画像変換] [DEBUG] telemetry suppressed:", eventName, eventParams);
+    // console.debug は DevTools の Verbose フィルターが有効でないと表示されない。
+    // デバッグ時は console.warn を使って確実に表示する。
+    console.warn("[かんたん画像変換] [DEBUG] telemetry suppressed:", eventName, eventParams);
     return;
   }
   try {
@@ -347,7 +349,8 @@ async function handleImageSave(info, tab, formatKey) {
         if (downloadId !== undefined) {
           sendTelemetry("conversion_result", { format: formatKey, result: "success", extension_version: version });
         }
-      } catch {
+      } catch (dlErr) {
+        if (DEBUG) console.warn("[かんたん画像変換] [DEBUG] downloadFile threw:", dlErr?.message ?? dlErr);
         showError("画像の保存に失敗しました。");
         sendTelemetry("conversion_result", { format: formatKey, result: "error",  extension_version: version });
         sendTelemetry("conversion_error",  { format: formatKey, reason: "download_failed", extension_version: version });
@@ -645,8 +648,10 @@ function downloadFile(dataUrl, filename) {
   // data: URL を blob: URL に変換（Firefox は data: URL の直接ダウンロード非対応）
   // fetch(data:URL) は Chromium Service Worker で失敗する実装があるため
   // atob で直接 Blob を生成する（Chrome・Firefox 両対応）
+  if (DEBUG) console.warn("[かんたん画像変換] [DEBUG] downloadFile start, dataUrl prefix:", dataUrl?.slice(0, 80));
   const [meta, base64] = dataUrl.split(",");
   const mime = meta.match(/:(.*?);/)[1];
+  if (DEBUG) console.warn("[かんたん画像変換] [DEBUG] mime:", mime, "base64 length:", base64?.length);
   const binaryString = atob(base64);
   const bytes = new Uint8Array(binaryString.length);
   for (let i = 0; i < binaryString.length; i++) {
@@ -660,7 +665,7 @@ function downloadFile(dataUrl, filename) {
       { url: blobUrl, filename: filename, saveAs: true },
       (downloadId) => {
         if (chrome.runtime.lastError) {
-          if (DEBUG) console.error("[かんたん画像変換] [DEBUG] download error:", chrome.runtime.lastError.message);
+          if (DEBUG) console.warn("[かんたん画像変換] [DEBUG] download error (lastError):", chrome.runtime.lastError.message);
           URL.revokeObjectURL(blobUrl);
           reject(new Error(chrome.runtime.lastError.message));
           return;
