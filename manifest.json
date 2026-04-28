@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "かんたん画像変換",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "description": "Webページの画像を右クリックでJPG・PNG・WebPに変換して保存できるブラウザ拡張機能（Chrome・Firefox対応）",
   "permissions": [
     "contextMenus",
