@@ -684,9 +684,18 @@ function downloadFile(dataUrl, filename) {
       { url: downloadUrl, filename: filename, saveAs: true },
       (downloadId) => {
         if (chrome.runtime.lastError) {
-          if (DEBUG) console.warn("[かんたん画像変換] [DEBUG] download error (lastError):", chrome.runtime.lastError.message);
+          const msg = chrome.runtime.lastError.message || "";
+          // Firefox はユーザーキャンセル時に lastError を設定する。
+          // Chrome は downloadId === undefined で通知するため、両方を cancellation として扱う。
+          if (/cancel/i.test(msg)) {
+            if (blobUrl) URL.revokeObjectURL(blobUrl);
+            console.info("[かんたん画像変換] Download cancelled by user.");
+            resolve(undefined);
+            return;
+          }
+          if (DEBUG) console.warn("[かんたん画像変換] [DEBUG] download error (lastError):", msg);
           if (blobUrl) URL.revokeObjectURL(blobUrl);
-          reject(new Error(chrome.runtime.lastError.message));
+          reject(new Error(msg));
           return;
         }
         if (downloadId === undefined) {
