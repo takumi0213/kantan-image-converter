@@ -49,6 +49,14 @@ const FORMAT_CONFIG = {
 /** エラーバッジ表示時間 (ms) */
 const ERROR_BADGE_DURATION = 4000;
 
+/**
+ * デバッグモード
+ * true にするとテレメトリ送信を無効化し、ダウンロードエラーの詳細をコンソールに出力する
+ * リリース時は必ず false にすること
+ * また、デバッグ目的以外にて true にしないこと
+ */
+const DEBUG = false;
+
 // ========================================================
 // テレメトリ定数
 // ========================================================
@@ -145,6 +153,12 @@ function sendTelemetry(eventName, params) {
   }
 
   // --- 非同期送信（try-catch で本処理に影響させない）---
+  if (DEBUG) {
+    // console.debug は DevTools の Verbose フィルターが有効でないと表示されない。
+    // デバッグ時は console.warn を使って確実に表示する。
+    console.warn("[かんたん画像変換] [DEBUG] telemetry suppressed:", eventName, eventParams);
+    return;
+  }
   try {
     fetch(TELEMETRY_ENDPOINT, {
       method: "POST",
@@ -336,7 +350,8 @@ async function handleImageSave(info, tab, formatKey) {
         if (downloadId !== undefined) {
           sendTelemetry("conversion_result", { format: formatKey, result: "success", extension_version: version });
         }
-      } catch {
+      } catch (dlErr) {
+        if (DEBUG) console.warn("[かんたん画像変換] [DEBUG] downloadFile threw:", dlErr?.message ?? dlErr);
         showError("画像の保存に失敗しました。");
         sendTelemetry("conversion_result", { format: formatKey, result: "error",  extension_version: version });
         sendTelemetry("conversion_error",  { format: formatKey, reason: "download_failed", extension_version: version });
@@ -630,30 +645,102 @@ class BlobDownloadError extends Error {
  * @param {string} dataUrl
  * @param {string} filename
  */
-async function downloadFile(dataUrl, filename) {
-  // data: URL を blob: URL に変換（Firefox は data: URL の直接ダウンロード非対応）
-  // fetch() でブラウザ実装に委ねることで atob ループより効率的に変換する
-  const blob = await fetch(dataUrl).then((r) => r.blob());
-  const blobUrl = URL.createObjectURL(blob);
-  try {
-    return await new Promise((resolve, reject) => {
-      chrome.downloads.download(
-        { url: blobUrl, filename: filename, saveAs: true },
-        (downloadId) => {
-          if (chrome.runtime.lastError) {
-            reject(new Error(chrome.runtime.lastError.message));
-          } else if (downloadId === undefined) {
+function downloadFile(dataUrl, filename) {
+  if (DEBUG) console.warn("[かんたん画像変換] [DEBUG] downloadFile start, dataUrl prefix:", dataUrl?.slice(0, 80));
+
+  // Chrome SW では URL.createObjectURL が利用不可のため data: URL を直接渡す。
+  // Firefox SW では URL.createObjectURL が利用可能なので atob で Blob を生成し
+  // blob: URL 経由でダウンロードする（Firefox は data: URL の直接DLに非対応）。
+  let downloadUrl = dataUrl;
+  let blobUrl = null;
+
+  if (typeof URL.createObjectURL === "function") {
+    // Firefox path: atob → Blob → blob: URL
+    const match = /^data:([^;,]+);base64,(.+)$/s.exec(dataUrl || "");
+    if (!match) {
+      return Promise.reject(new Error("Invalid data URL format"));
+    }
+    const [, mime, base64] = match;
+    if (DEBUG) console.warn("[かんたん画像変換] [DEBUG] Firefox path: mime:", mime, "base64 length:", base64.length);
+    let binaryString;
+    try {
+      binaryString = atob(base64);
+    } catch {
+      return Promise.reject(new Error("Invalid base64 payload"));
+    }
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    const blob = new Blob([bytes], { type: mime });
+    blobUrl = URL.createObjectURL(blob);
+    downloadUrl = blobUrl;
+  } else {
+    // Chrome path: data: URL を直接渡す（Chrome SW は URL.createObjectURL 非対応）
+    if (DEBUG) console.warn("[かんたん画像変換] [DEBUG] Chrome path: URL.createObjectURL unavailable, using data URL directly");
+  }
+
+  return new Promise((resolve, reject) => {
+    chrome.downloads.download(
+      { url: downloadUrl, filename: filename, saveAs: true },
+      (downloadId) => {
+        if (chrome.runtime.lastError) {
+          const msg = chrome.runtime.lastError.message || "";
+          // Firefox はユーザーキャンセル時に lastError を設定する。
+          // Chrome は downloadId === undefined で通知するため、両方を cancellation として扱う。
+          if (/cancel/i.test(msg)) {
+            if (blobUrl) URL.revokeObjectURL(blobUrl);
             console.info("[かんたん画像変換] Download cancelled by user.");
             resolve(undefined);
-          } else {
-            resolve(downloadId);
+            return;
           }
+          if (DEBUG) console.warn("[かんたん画像変換] [DEBUG] download error (lastError):", msg);
+          if (blobUrl) URL.revokeObjectURL(blobUrl);
+          reject(new Error(msg));
+          return;
         }
-      );
-    });
-  } finally {
-    URL.revokeObjectURL(blobUrl);
-  }
+        if (downloadId === undefined) {
+          if (blobUrl) URL.revokeObjectURL(blobUrl);
+          console.info("[かんたん画像変換] Download cancelled by user.");
+          resolve(undefined);
+          return;
+        }
+        if (!blobUrl) {
+          // Chrome path: data URL 直接渡しなので blob: URL の cleanup は不要
+          resolve(downloadId);
+          return;
+        }
+        // Firefox path: callback 直後に revoke するとブラウザが実データを読む前に
+        // URL が無効になり download_failed が発生する場合がある。
+        // onChanged でダウンロードが完了または中断してから revoke する。
+        let cleanedUp = false;
+        const cleanup = () => {
+          if (cleanedUp) return;
+          cleanedUp = true;
+          chrome.downloads.onChanged.removeListener(onChanged);
+          URL.revokeObjectURL(blobUrl);
+        };
+        const onChanged = (delta) => {
+          if (delta.id !== downloadId || !delta.state) return;
+          const state = delta.state.current;
+          if (state === "complete" || state === "interrupted") {
+            cleanup();
+          }
+        };
+        chrome.downloads.onChanged.addListener(onChanged);
+        // addListener より前にダウンロードが終了していた場合は onChanged が発火しない。
+        // 登録直後に状態を確認し、既に終端状態であれば即座にクリーンアップする。
+        chrome.downloads.search({ id: downloadId }, (items) => {
+          if (chrome.runtime.lastError) return;
+          const state = items?.[0]?.state;
+          if (state === "complete" || state === "interrupted") {
+            cleanup();
+          }
+        });
+        resolve(downloadId);
+      }
+    );
+  });
 }
 
 /**

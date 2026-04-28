@@ -102,7 +102,7 @@ for (const perm of REQUIRED_PERMISSIONS) {
 check("host_permissions が使用されていない",
   !manifest.host_permissions || manifest.host_permissions.length === 0);
 
-// Firefox 対応要件
+// Firefox (AMO) 対応要件: service_worker には scripts フォールバックが必須
 check("background.scripts が配列として存在する",
   Array.isArray(manifest.background?.scripts) && manifest.background.scripts.length > 0);
 
